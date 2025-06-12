@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title layout:fragment="title">Admin Panel</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+
+    <style>
+        .layout-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .layout-sidebar {
+            min-width: 250px;
+            background-color: #1171d1;
+            border-right: 1px solid #083867;
+        }
+        .layout-content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        /* Sidebar styling */
+        .admin-sidebar .nav-link {
+            color: rgba(0, 0, 0, 1);
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .admin-sidebar .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            /*color: white;*/
+        }
+    </style>
+</head>
+<body>
+<div class="layout-container">
+    <div class="layout-sidebar" th:replace="~{fragments/admin-sidebar :: sidebar}"></div>
+    <div class="layout-content" layout:fragment="content"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+.btn-custom {
+    background-color: rgba(140, 20, 25, 1);
+    color: white;
+    border: none;
+}
+
+.btn-custom:hover {
+    background-color: rgb(167, 32, 37);
+    color: white;
+}
+.admin-sidebar {
+    background-color: #f8f9fa;
+    padding: 20px;
+    min-height: 100vh;
+    border-right: 1px solid #dee2e6;
+}
+
+.admin-sidebar .nav-link {
+    color: #8e1b1b;
+    padding: 10px 15px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.admin-sidebar .nav-link:hover {
+    background-color: #e2e6ea;
+    border-radius: 4px;
+    text-decoration: none;
+}
