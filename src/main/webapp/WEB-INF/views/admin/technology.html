@@ -2,21 +2,234 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/admin-layout}">
+
 <head>
     <meta charset="UTF-8">
     <title>Technology Management</title>
-    <link rel="stylesheet" href="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/technology.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        .pagination-btn.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .search-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            color: #333;
+        }
+
+        .search-btn i {
+            font-size: 18px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: #6c757d;
+        }
+
+        .py-3 {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+
+    </style>
 </head>
 
 <body>
-<!-- Content -->
 <div layout:fragment="content">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold">Technology</h4>
-        <a href="/auth/logout" class="btn btn-danger btn-sm">Đăng xuất</a>
-    </div>
+    <div class="technology-container">
+        <div class="technology-header">
+            <img th:src="@{/images/technology.svg}" alt="Technology" width="20" height="20">
+            <h1 class="technology-title">Technology</h1>
+        </div>
 
-    <p>Chào mừng bạn đến trang quản lý công nghệ!</p>
+        <!-- Controls -->
+        <div class="controls-section">
+            <a th:href="@{/admin/technology/add(page=${page}, size=${size}, search=${search})}" class="add-btn">Add Technology</a>
+            <div class="search-container">
+                <form th:action="@{/admin/technology}" method="get">
+                    <input type="text" name="search" th:value="${param.search}" class="search-input" placeholder="Search here...">
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <form th:action="@{/admin/technology}" method="get" class="d-flex align-items-center" style="gap: 10px;">
+            <!-- Giữ lại search và page -->
+            <input type="hidden" name="search" th:value="${search}">
+            <input type="hidden" name="page" th:value="${page}">
+
+            <label for="sizeSelect" class="text-muted">Rows per page:</label>
+            <select id="sizeSelect" name="size" class="form-select"
+                    onchange="this.form.submit()"
+                    style="width: auto; padding: 4px 30px 4px 10px;">
+                <option th:value="5" th:selected="${size == 5}">5</option>
+                <option th:value="10" th:selected="${size == 10}">10</option>
+                <option th:value="20" th:selected="${size == 20}">20</option>
+                <option th:value="50" th:selected="${size == 50}">50</option>
+            </select>
+        </form>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table class="tech-table">
+                <thead>
+                <tr>
+                    <th style="width: 333px;">#</th>
+                    <th>Technology Name</th>
+                    <th style="width: 350px">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Nếu có kết quả -->
+                <tr th:each="tech, iterStat : ${technologies}" th:if="${technologies.size() > 0}">
+
+                    <td th:text="${iterStat.index + 1}"></td>
+                    <td th:text="${tech.name}"></td>
+                    <td>
+                        <a th:href="@{/admin/technology/edit/{id}(id=${tech.id}, page=${page}, size=${size}, search=${search})}"
+                           class="action-btn">
+                            <img th:src="@{/images/actionedit.svg}" alt="edit">
+                        </a>
+                        <a href="#" class="action-btn"
+                           th:attr="data-delete-url=@{/admin/technology/delete/{id}(id=${tech.id}, page=${page}, size=${size}, search=${search})}"
+                           onclick="openDeleteModal(this)">
+                            <span class="delete-icon"></span>
+                        </a>
+                    </td>
+                </tr>
+
+                <!-- Nếu không có kết quả -->
+                <tr th:if="${technologies.size() == 0}">
+                    <td colspan="3" class="text-center text-muted py-3">Không có kết quả phù hợp.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination -->
+        <div class="pagination d-flex justify-content-end" th:if="${technologies.size() > 0}">
+            <ul class="pagination-list">
+                <!-- Nút Trái -->
+                <li>
+                    <a th:if="${page > 0}"
+                       th:href="@{${pageUrl}(page=${page - 1}, size=${size})}"
+                       class="pagination-btn">&larr;</a>
+                    <a th:unless="${page > 0}"
+                       class="pagination-btn disabled" tabindex="-1" aria-disabled="true">&larr;</a>
+                </li>
+
+                <!-- Danh sách số trang -->
+                <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                    <a th:href="@{${pageUrl}(page=${i}, size=${size})}"
+                       th:classappend="${page == i} ? 'active'" class="pagination-btn"
+                       th:text="${i + 1}">1</a>
+                </li>
+
+                <!-- Nút Phải -->
+                <li>
+                    <a th:if="${page < totalPages - 1}"
+                       th:href="@{${pageUrl}(page=${page + 1}, size=${size})}"
+                       class="pagination-btn">&rarr;</a>
+                    <a th:unless="${page < totalPages - 1}"
+                       class="pagination-btn disabled" tabindex="-1" aria-disabled="true">&rarr;</a>
+                </li>
+            </ul>
+        </div>
+        <div class="modal fade" id="technologyModal" tabindex="-1" aria-hidden="true"
+             th:classappend="${showModal} ? 'show d-block' : ''"
+             th:style="${showModal} ? 'background: rgba(0,0,0,0.5);' : ''"
+             style="padding-top: 100px">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form th:action="@{/admin/technology/save}" method="post" th:object="${technology}" id="technologyForm">
+                        <input type="hidden" name="page" th:value="${page}" />
+                        <input type="hidden" name="size" th:value="${size}" />
+                        <input type="hidden" name="search" th:value="${search}" />
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="technologyModalLabel"
+                                th:text="${technology.id != null} ? 'Edit Technology' : 'Add Technology'">Add Technology</h5>
+                            <button type="button" class="btn-close" onclick="window.location.href='/admin/technology'"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" th:field="*{id}" id="technologyId">
+
+                            <div class="mb-3">
+                                <label class="form-label">Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control"
+                                       th:field="*{name}"
+                                       id="technologyName"
+                                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                                <div class="invalid-feedback"
+                                     th:if="${#fields.hasErrors('name')}"
+                                     th:errors="*{name}"></div>
+                            </div>
+
+                            <div class="text-danger" th:if="${error}" th:text="${error}"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <a th:href="@{/admin/technology(page=${page}, size=${size}, search=${search})}"
+                               class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Modal xác nhận xóa -->
+        <div id="deleteConfirmModal" class="modal fade" tabindex="-1" aria-hidden="true" style="padding-top: 100px;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 10px; padding: 24px;">
+                    <div class="modal-body  align-items-start p-0">
+                        <img th:src="@{/images/delete.svg}" alt="Technology" width="60" height="62" style="margin-bottom: 10px">
+                        <div style="flex: 1;">
+                            <h5 style="font-family: Inter;font-weight: 500;font-size: 18px;color: rgba(16, 24, 40, 1)">Xác nhận</h5>
+                            <p style="color: rgba(102, 112, 133, 1);font-family: Inter;font-weight: 400;font-size: 14px">Bạn có chắc chắn muốn xóa công nghệ này khỏi hệ thống không?</p>
+                            <hr class="my-3">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button"
+                                        style="background-color: rgba(255, 255, 255, 1);
+                                           color: rgba(71, 85, 105, 1);
+                                           border-radius: 8px;
+                                           border: 1px solid rgba(208, 213, 221, 1);
+                                           width: 60px;
+                                           height: 44px;
+                                           display: flex;
+                                           align-items: center;
+                                           justify-content: center;"
+                                        onclick="closeDeleteModal()">Hủy</button>
+
+                                <a id="confirmDeleteBtn" href="#"
+                                   style="color: rgba(255, 255, 255, 1);
+                                  background-color: rgba(217, 45, 32, 1);
+                                  border-radius: 8px;
+                                  border: 1px solid rgba(217, 45, 32, 1);
+                                  width: 60px;
+                                  height: 44px;
+                                  text-decoration: none;
+                                  display: flex;
+                                  align-items: center;
+                                  justify-content: center;">Xóa
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 </body>
 </html>

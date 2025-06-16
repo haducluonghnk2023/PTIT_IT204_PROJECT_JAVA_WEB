@@ -1,5 +1,6 @@
-package com.data.ra.repository;
+package com.data.ra.repository.auth;
 
+import com.data.ra.dto.auth.SignUpRequestDTO;
 import com.data.ra.entity.auth.User;
 
 public interface AuthRepository {
@@ -8,4 +9,5 @@ public interface AuthRepository {
     User findByRememberToken(String token);
     void updateRememberToken(Long userId, String token);
     void removeRememberToken(String token);
+    boolean register(SignUpRequestDTO request);
 }

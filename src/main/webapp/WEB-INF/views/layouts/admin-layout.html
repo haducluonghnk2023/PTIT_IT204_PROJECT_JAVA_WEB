@@ -10,31 +10,42 @@
     <!-- Bootstrap -->
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <script th:src="@{/js/bootstrap.min.js}"></script>
-
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* không cuộn toàn trang */
+        }
+
         .layout-container {
             display: flex;
-            min-height: 100vh;
-        }
-        .layout-sidebar {
-            min-width: 250px;
-            background-color: #1171d1;
-            border-right: 1px solid #083867;
-        }
-        .layout-content {
-            flex-grow: 1;
-            padding: 20px;
+            height: 100vh;
         }
 
-        /* Sidebar styling */
-        .admin-sidebar .nav-link {
-            color: rgba(0, 0, 0, 1);
-            padding: 12px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+        .layout-sidebar {
+            width: 300px;
+            background-color: #1171d1;
+            border-right: 1px solid #083867;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 1000;
         }
-        .admin-sidebar .nav-link:hover {
-            background-color: rgba(255,255,255,0.1);
-            /*color: white;*/
+
+        .layout-content {
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
+            width: calc(100% - 250px);
+        }
+
+        /* Optional: cho đẹp */
+        .fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
         }
     </style>
 </head>
@@ -43,5 +54,111 @@
     <div class="layout-sidebar" th:replace="~{fragments/admin-sidebar :: sidebar}"></div>
     <div class="layout-content" layout:fragment="content"></div>
 </div>
+<script>
+    setTimeout(() => {
+        const overlay = document.getElementById('alert-overlay');
+        if (overlay) {
+            overlay.classList.add('fade-out');
+
+            overlay.querySelectorAll('.alert').forEach(alertEl => {
+                const alert = bootstrap.Alert.getOrCreateInstance(alertEl);
+                alert.close();
+            });
+
+            // Xoá overlay sau khi fade-out
+            setTimeout(() => {
+                overlay.remove();
+            }, 500); // chờ hiệu ứng fade-out (0.5s)
+        }
+    }, 1500);
+
+    const searchInput = document.getElementById('searchInput');
+    const form = document.getElementById('filterForm');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                form.submit();
+            }
+        });
+    }
+
+    function closeTechModal() {
+        document.getElementById("techModal").style.display = "none";
+    }
+
+
+    // Tùy chọn: ấn ESC để đóng
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeTechModal();
+        }
+    });
+
+    let currentForm = null;
+
+    function showConfirmModal(button) {
+        currentForm = button.closest('form');
+
+        // Lấy giá trị status trong form (true hoặc false dạng chuỗi)
+        const statusInput = currentForm.querySelector('input[name="status"]');
+        const isActivating = statusInput.value === 'true';
+
+        // Cập nhật nội dung thông báo
+        const message = isActivating
+            ? 'Bạn có chắc chắn muốn <strong>mở khóa</strong> tài khoản này không?'
+            : 'Bạn có chắc chắn muốn <strong>khóa</strong> tài khoản này khỏi hệ thống không?';
+        document.getElementById('modalMessage').innerHTML = message;
+
+        // Cập nhật nội dung nút xác nhận
+        const confirmBtn = document.getElementById('confirmBtn');
+        confirmBtn.textContent = isActivating ? 'Mở khóa' : 'Khóa';
+
+        // Hiển thị modal
+        document.getElementById("confirmModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("confirmModal").style.display = "none";
+        currentForm = null;
+    }
+
+    function confirmLock() {
+        if (currentForm) {
+            currentForm.submit();
+        }
+        closeModal();
+    }
+
+    function openDeleteModal(el) {
+        const deleteUrl = el.getAttribute("data-delete-url");
+        const confirmBtn = document.getElementById("confirmDeleteBtn");
+        confirmBtn.setAttribute("href", deleteUrl);
+
+        const modal = document.getElementById("deleteConfirmModal");
+        modal.classList.add("show", "d-block");
+        modal.style.background = "rgba(0,0,0,0.5)";
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById("deleteConfirmModal");
+        modal.classList.remove("show", "d-block");
+        modal.style.background = "";
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        const filterForm = document.getElementById("filterForm");
+
+        // Gắn onchange cho các filter để submit form
+        ['experienceFilter', 'ageFilter', 'genderFilter', 'technologyFilter'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener("change", () => {
+                    filterForm.submit();
+                });
+            }
+        });
+    });
+
+</script>
 </body>
 </html>

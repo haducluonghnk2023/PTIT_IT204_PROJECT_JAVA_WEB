@@ -4,6 +4,7 @@ import com.data.ra.entity.admin.Application;
 import com.data.ra.entity.admin.Technology;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -33,7 +34,7 @@ public class Candidate {
     @Column(length = 10)
     private String gender;
 
-    @Column(length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'active'")
+    @Column(length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'Active'")
     private String status;
 
     @Column(columnDefinition = "TEXT")
@@ -44,7 +45,7 @@ public class Candidate {
     @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL)
     private Set<Application> applications;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "candidate_technology",
             joinColumns = @JoinColumn(name = "candidateId"),

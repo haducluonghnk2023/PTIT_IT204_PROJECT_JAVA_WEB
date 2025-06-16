@@ -1,13 +1,16 @@
+/* Nút tùy chỉnh (dành cho nút logout hoặc nút riêng) */
 .btn-custom {
-    background-color: rgba(140, 20, 25, 1);
+    background-color: #8c1419;
     color: white;
     border: none;
 }
 
 .btn-custom:hover {
-    background-color: rgb(167, 32, 37);
+    background-color: #a72025;
     color: white;
 }
+
+/* Sidebar admin */
 .admin-sidebar {
     background-color: #f8f9fa;
     padding: 20px;
@@ -15,15 +18,127 @@
     border-right: 1px solid #dee2e6;
 }
 
-.admin-sidebar .nav-link {
-    color: #8e1b1b;
-    padding: 10px 15px;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
+/* Danh sách menu */
+.admin-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 225px; /* Tạo khoảng cách với nút logout */
 }
 
+/* Link trong menu */
+.admin-sidebar .nav-link {
+    display: block;
+    color: rgba(25, 29, 35, 1);
+    padding: 10px 15px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    margin-bottom: 5px; /* Khoảng cách giữa các menu items */
+}
+
+/* Hover cho link */
 .admin-sidebar .nav-link:hover {
     background-color: #e2e6ea;
-    border-radius: 4px;
-    text-decoration: none;
 }
+
+/* Nút logout */
+.admin-sidebar .btn-danger {
+    margin-top: 5px;
+    margin-left: 45px;
+    background-color: #8c1419;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.admin-sidebar .btn-danger:hover {
+    background-color: #a72025;
+}
+
+.company-logo-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+}
+
+.company-logo-box .logo {
+    width: 30px;
+    height: 26px;
+}
+
+.company-name {
+    font-size: 24px;
+    font-weight: 500;
+    margin: 0;
+    color: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.company-name .highlight {
+    color: rgba(171, 31, 36, 1); /* đỏ đậm từ Figma */
+    font-weight: 700;
+}
+.profile-section {
+    border-top: 1px solid #f0f0f0;
+    padding: 16px;
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 12px;
+}
+
+.profile-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+}
+.profile-details {
+    margin-top: 4px;
+}
+.profile-details h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.profile-details p {
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+}
+
+.nav-link.active {
+    color: rgba(171, 31, 36, 1);
+    font-weight: 600;
+    font-family: Manrope;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: rgba(231, 234, 238, 1);
+}
+.nav-link .nav-icon {
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
+    color: rgba(171, 31, 36, 1);
+}
+.admin-sidebar .nav-link:hover {
+    background-color: #f0f0f0;
+    color: rgba(171, 31, 36, 1);
+}
+
+

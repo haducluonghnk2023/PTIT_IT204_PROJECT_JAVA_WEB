@@ -1,19 +1,251 @@
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/admin-layout}">
 <head>
     <meta charset="UTF-8">
-    <title layout:fragment="title">Candidate</title>
+    <title layout:fragment="title">Candidate Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/candidate.css}">
 </head>
 
 <body>
 <div layout:fragment="content">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold">Candidate</h4>
-        <a href="/auth/logout" class="btn btn-danger btn-sm">Đăng xuất</a>
+    <div id="confirmModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 440px; margin: 10% auto; background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
+            <div style="gap: 16px; align-items: flex-start;">
+                <div class="modal-icon" style="flex-shrink: 0; display: flex">
+                    <img th:src="@{/images/warning.svg}" alt="Cảnh báo" width="48" height="48">
+                </div>
+                <div style="flex: 1;">
+                    <h5 class="modal-title" style=" display: flex;font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px">Xác nhận</h5>
+                    <p class="modal-message" id="modalMessage" style="color: #6b7280; font-size: 14px;padding: 0;">
+                    <hr class="my-3">
+                    </p>
+                    <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 8px;">
+                        <button class="btn btn-outline-secondary" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #d1d5db; background: #fff; color: #374151;" onclick="closeModal()">Hủy</button>
+                        <button class="btn btn-warning" id="confirmBtn" onclick="confirmLock()" style="padding: 8px 16px; border-radius: 8px; color: rgba(255, 255, 255, 1);
+                        background-color: rgba(251, 176, 26, 1); border: 1px solid rgba(251, 176, 26, 1);">Xác nhận</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <p>Chào mừng bạn đến trang quản lý ứng viên!</p>
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="candidate-header">
+                <img th:src="@{/images/candidate.svg}" alt="Technology" width="20" height="20">
+                <h1 class="candidate-title">Candidate</h1>
+        </div>
+
+        <!-- Filters -->
+        <form id="filterForm" method="get" th:action="@{/admin/candidate}">
+            <input type="hidden" name="size" th:value="${size}" />
+            <input type="hidden" name="page" th:value="${page}" />
+
+            <div class="filter-wrapper">
+                <!-- Search -->
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" name="name" placeholder="Search here ..."
+                           th:value="${param.name}" />
+                    <i class="bi bi-search search-icon"></i>
+                </div>
+
+                <!-- Experience -->
+                <select class="form-select" id="experienceFilter" name="experience" onchange="this.form.submit()">
+                    <option value="">Experience</option>
+                    <option value="1" th:selected="${param.experience == '1'}">0-1 years</option>
+                    <option value="3" th:selected="${param.experience == '3'}">2-3 years</option>
+                    <option value="5" th:selected="${param.experience == '5'}">4-5 years</option>
+                    <option value="6" th:selected="${param.experience == '6'}">6+ years</option>
+                </select>
+
+                <!-- Age -->
+                <select class="form-select" id="ageFilter" name="age" onchange="this.form.submit()">
+                    <option value="">Age</option>
+                    <option value="20-25" th:selected="${param.age == '20-25'}">20-25</option>
+                    <option value="26-30" th:selected="${param.age == '26-30'}">26-30</option>
+                    <option value="31-35" th:selected="${param.age == '31-35'}">31-35</option>
+                    <option value="36-40" th:selected="${param.age == '36-40'}">36-40</option>
+                </select>
+
+                <!-- Gender -->
+                <select class="form-select" id="genderFilter" name="gender" onchange="this.form.submit()">
+                    <option value="">Gender</option>
+                    <option value="Male" th:selected="${param.gender == 'Male'}">Male</option>
+                    <option value="Female" th:selected="${param.gender == 'Female'}">Female</option>
+                </select>
+
+                <!-- Technology -->
+                <select class="form-select" id="technologyFilter" name="technology" onchange="this.form.submit()">
+                    <option value="">Technology</option>
+                    <option th:each="tech : ${technologies}"
+                            th:value="${tech.name}"
+                            th:selected="${param.technology == tech.name}"
+                            th:text="${tech.name}">
+                    </option>
+                </select>
+            </div>
+        </form>
+
+        <!-- Rows per page -->
+        <form method="get" th:action="@{/admin/candidate}" class="d-flex align-items-center gap-2 mt-1 mb-2">
+            <input type="hidden" name="name" th:value="${param.name}">
+            <input type="hidden" name="experience" th:value="${param.experience}">
+            <input type="hidden" name="age" th:value="${param.age}">
+            <input type="hidden" name="gender" th:value="${param.gender}">
+            <input type="hidden" name="technology" th:value="${param.technology}">
+
+            <label for="sizeSelect" class="text-muted mb-0">Rows per page:</label>
+            <select id="sizeSelect" name="size" class="form-select"
+                    onchange="this.form.submit()"
+                    style="width: auto; padding: 4px 30px 4px 10px;">
+                <option th:value="5" th:selected="${size == 5}">5</option>
+                <option th:value="10" th:selected="${size == 10}">10</option>
+                <option th:value="20" th:selected="${size == 20}">20</option>
+                <option th:value="50" th:selected="${size == 50}">50</option>
+            </select>
+        </form>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                <tr>
+                    <th>STT</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Email</th>
+                    <th>Technology</th>
+                    <th>Phone</th>
+                    <th>Experience</th>
+                    <th>Gender</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr class="a" th:each="candidate, iterStat : ${candidates}" th:if="${not #lists.isEmpty(candidates)}">
+                        <td th:text="${iterStat.index + 1}"></td>
+                        <td th:text="${candidate.name}"></td>
+                        <td th:text="${candidate.dob != null ? candidate.dob.format(T(java.time.format.DateTimeFormatter).ofPattern('dd/MM/yyyy')) : ''}"></td>
+                        <td th:text="${candidate.email}"></td>
+
+                        <td class="btn-tech" style="position: relative;">
+                            <!-- Công nghệ đầu tiên -->
+                            <span class="item" th:if="${candidate.firstTechnology != null}"
+                                  th:text="${candidate.firstTechnology}"></span>
+
+                            <!-- Công nghệ thứ hai (nếu có ít nhất 2 công nghệ) -->
+                            <span class="item"
+                                  th:if="${#lists.size(candidate.remainingTechnologies) >= 1}"
+                                  th:text="${candidate.remainingTechnologies.get(0)}"></span>
+
+                            <!-- Nếu còn nhiều hơn 2 thì mới hiển thị +n -->
+                            <span class="item more-item" style="cursor: pointer; position: relative;"
+                                  th:if="${#lists.size(candidate.remainingTechnologies) > 1}">
+                                    <span th:text="'+' + (${#lists.size(candidate.remainingTechnologies)} - 1)"></span>
+
+                                                            <!-- Tooltip hiển thị khi hover -->
+                                    <div class="tech-hover-box"
+                                         style="display: none; position: absolute; top: 100%; left: 0; background: #fff; border: 1px solid #ccc; padding: 6px 10px; z-index: 10; border-radius: 6px; white-space: nowrap;">
+                                        <span class="item"
+                                              th:each="techName, iterStat : ${candidate.remainingTechnologies}"
+                                              th:if="${iterStat.index > 0 and techName != null and !#strings.isEmpty(techName)}"
+                                              th:text="${techName}">
+                                        </span>
+                                    </div>
+                            </span>
+                        </td>
+                        <td th:text="${candidate.phone}"></td>
+                        <td th:text="${candidate.experience}"></td>
+                        <td th:text="${candidate.gender}"></td>
+                        <td>
+                            <span th:if="${candidate.status == 'Active'}" class="badge badge-status-active">
+                                <img th:src="@{/images/dotactive.svg}" alt="Technology" width="8" height="8" class="me-1" /> Active
+                            </span>
+
+                            <span th:if="${candidate.status != 'Active'}" class="badge badge-status-inactive">
+                                <img th:src="@{/images/dotdeactive.svg}" alt="Technology" width="8" height="8" class="me-1" /> Deactive
+                            </span>
+                        </td>
+
+                        <td>
+                            <!-- Form ẩn để submit sau khi xác nhận -->
+                            <form th:action="@{/admin/candidate/update-status}" method="post" class="status-form">
+                                <input type="hidden" name="id" th:value="${candidate.id}" />
+                                <input type="hidden" name="status" th:value="${candidate.status == 'Active' ? false : true}" />
+
+                                <!-- Preserve filter and pagination -->
+                                <input type="hidden" name="name" th:value="${param.name}" />
+                                <input type="hidden" name="experience" th:value="${param.experience}" />
+                                <input type="hidden" name="age" th:value="${param.age}" />
+                                <input type="hidden" name="gender" th:value="${param.gender}" />
+                                <input type="hidden" name="technology" th:value="${param.technology}" />
+                                <input type="hidden" name="page" th:value="${page}" />
+                                <input type="hidden" name="size" th:value="${size}" />
+
+                                <button type="button"
+                                        class="btn btn-icon"
+                                        th:classappend="${candidate.status == 'Active'} ? ' text-success' : ' text-danger'"
+                                        onclick="showConfirmModal(this)">
+                                    <img th:if="${candidate.status == 'Active'}" th:src="@{/images/unlock.svg}" class="status-icon" alt="unlock" />
+                                    <img th:if="${candidate.status != 'Active'}" th:src="@{/images/lock.svg}" class="status-icon" alt="lock" />
+                                </button>
+                            </form>
+
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(candidates)}">
+                        <td colspan="10" class="text-center text-danger fw-bold py-4">
+                            <i class="bi bi-exclamation-circle me-2"></i>Không tìm thấy kết quả phù hợp.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" th:if="${totalPages > 0}">
+            <ul class="pagination justify-content-end gap-2">
+
+                <!-- Nút Trái -->
+                <li class="page-item" th:classappend="${page == 0} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="${page == 0} ? '#' : ${pageUrl + '&page=' + (page - 1)}"
+                       aria-label="Previous">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+
+                <!-- Danh sách số trang -->
+                <li class="page-item"
+                    th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${page == i} ? 'active'">
+                    <a class="page-link"
+                       th:href="${pageUrl + '&page=' + i}"
+                       th:text="${i + 1}">
+                    </a>
+                </li>
+
+                <!-- Nút Phải -->
+                <li class="page-item" th:classappend="${page == totalPages - 1} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="${page == totalPages - 1} ? '#' : ${pageUrl + '&page=' + (page + 1)}"
+                       aria-label="Next">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+
+
+    </div>
 </div>
 </body>
 </html>

@@ -21,7 +21,7 @@ public class User {
     private String username;
     private String email;
     private String password;
-    private String role; // "ADMIN" or "CANDIDATE"
+    private String role;
 
     @Column(name = "remember_token")
     private String rememberToken;

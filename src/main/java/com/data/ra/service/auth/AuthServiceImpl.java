@@ -1,8 +1,10 @@
-package com.data.ra.service;
+package com.data.ra.service.auth;
 
+import com.data.ra.dto.auth.SignUpRequestDTO;
 import com.data.ra.entity.auth.User;
-import com.data.ra.repository.AuthRepository;
+import com.data.ra.repository.auth.AuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -10,6 +12,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private AuthRepository authRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public User findByEmail(String email) {
@@ -19,7 +24,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public User login(String email, String password) {
         User user = authRepository.findByEmail(email);
-        if (user != null && user.getPassword().equals(password)) {
+        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
             return user;
         }
         return null;
@@ -42,5 +47,10 @@ public class AuthServiceImpl implements AuthService {
             user.setRememberToken(null);
             authRepository.updateRememberToken(user.getId(), null);
         }
+    }
+
+    @Override
+    public boolean register(SignUpRequestDTO request) {
+        return authRepository.register(request);
     }
 }

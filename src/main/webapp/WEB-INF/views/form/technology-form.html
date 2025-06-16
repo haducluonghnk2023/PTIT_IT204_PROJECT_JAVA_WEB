@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${editMode} ? 'Chỉnh sửa công nghệ' : 'Thêm công nghệ'">Thêm công nghệ</title>
+  <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+  <style>
+    body {
+      background-color: #f8f9fa;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .form-container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-weight: 600;
+    }
+    .btn {
+      min-width: 100px;
+    }
+  </style>
+</head>
+<body>
+<div class="form-container">
+  <h2 th:text="${editMode} ? 'Chỉnh sửa công nghệ' : 'Thêm công nghệ'"></h2>
+
+  <form th:action="@{/admin/technology/save}" th:object="${technology}" method="post">
+    <!-- Hidden fields -->
+    <input type="hidden" th:field="*{id}" />
+    <input type="hidden" name="page" th:value="${page}" />
+    <input type="hidden" name="size" th:value="${size}" />
+
+    <!-- Tên công nghệ -->
+    <div class="mb-3">
+      <label for="name" class="form-label">Tên công nghệ <span class="text-danger">*</span></label>
+      <input type="text"
+             id="name"
+             class="form-control"
+             th:field="*{name}"
+             th:classappend="${#fields.hasErrors('name')} ? ' is-invalid' : ''" />
+      <div th:if="${#fields.hasErrors('name')}" class="text-danger mt-1">
+        <p th:errors="*{name}"></p>
+      </div>
+    </div>
+
+    <!-- Nút hành động -->
+    <div class="d-flex justify-content-between mt-4">
+      <a th:href="@{/admin/technology(page=${page}, size=${size})}" class="btn btn-secondary">Huỷ</a>
+      <button type="submit" class="btn btn-danger" th:text="${editMode} ? 'Cập nhật' : 'Lưu'">Lưu</button>
+    </div>
+  </form>
+</div>
+</body>
+</html>

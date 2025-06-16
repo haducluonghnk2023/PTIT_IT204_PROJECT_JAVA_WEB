@@ -1,13 +1,15 @@
 package com.data.ra.controller.auth;
 
+import com.data.ra.dto.auth.SignUpRequestDTO;
 import com.data.ra.dto.auth.UserDTO;
 import com.data.ra.entity.auth.User;
-import com.data.ra.service.AuthService;
+import com.data.ra.service.auth.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -23,10 +25,13 @@ public class AuthController {
     private AuthService authService;
 
     @GetMapping("/login")
-    public String loginPage(Model model) {
-        model.addAttribute("user", new UserDTO());
+    public String loginPage(Model model, @ModelAttribute("user") UserDTO userDTO) {
+        if (!model.containsAttribute("user")) {
+            model.addAttribute("user", new UserDTO());
+        }
         return "auth/sign-in";
     }
+
 
     @GetMapping
     public String auth(Model model) {
@@ -52,9 +57,9 @@ public class AuthController {
         }
 
         // Lưu session theo role
-        if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+        if ("admin".equalsIgnoreCase(user.getRole())) {
             session.setAttribute("currentAdmin", user);
-        } else if ("CANDIDATE".equalsIgnoreCase(user.getRole())) {
+        } else if ("candidate".equalsIgnoreCase(user.getRole())) {
             session.setAttribute("currentCandidate", user);
         }
 
@@ -70,7 +75,7 @@ public class AuthController {
         }
 
         // Chuyển trang sau login
-        return "ADMIN".equalsIgnoreCase(user.getRole()) ? "redirect:/admin/dashboard" : "redirect:/candidate";
+        return "admin".equalsIgnoreCase(user.getRole()) ? "redirect:/admin/dashboard" : "redirect:/candidate/information";
     }
 
     @GetMapping("/logout")
@@ -97,5 +102,42 @@ public class AuthController {
         // Redirect về login
         return "redirect:/auth/login";
     }
+
+    @GetMapping("/signup")
+    public String signUpPage(Model model) {
+        model.addAttribute("signUpRequest", new SignUpRequestDTO());
+        return "auth/sign-up";
+    }
+
+    @PostMapping("/signup")
+    public String signUp(@Valid @ModelAttribute("signUpRequest") SignUpRequestDTO signUpRequest,
+                         BindingResult result,
+                         RedirectAttributes redirectAttributes,
+                         Model model) {
+
+        // 🔴 BƯỚC 1: Check các lỗi @NotBlank, @Email trước
+        if (result.hasErrors()) {
+            return "auth/sign-up";
+        }
+
+        // 🔴 BƯỚC 2: Check confirm password sau khi các trường khác OK
+        if (!signUpRequest.getPassword().equals(signUpRequest.getConfirmPassword())) {
+            result.rejectValue("confirmPassword", "error.confirmPassword", "Mật khẩu xác nhận không khớp");
+            return "auth/sign-up";
+        }
+
+        // 🔴 BƯỚC 3: Kiểm tra email trùng
+        boolean isRegistered = authService.register(signUpRequest);
+        if (!isRegistered) {
+            model.addAttribute("error", "Email đã tồn tại");
+            return "auth/sign-up";
+        }
+
+        redirectAttributes.addFlashAttribute("user", new UserDTO(signUpRequest.getEmail(),""));
+        redirectAttributes.addFlashAttribute("message", "Đăng ký thành công! Vui lòng đăng nhập.");
+        // Thành công
+        return "redirect:/auth/login";
+    }
+
 
 }

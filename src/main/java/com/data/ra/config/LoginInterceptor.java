@@ -1,7 +1,7 @@
 package com.data.ra.config;
 
 import com.data.ra.entity.auth.User;
-import com.data.ra.service.AuthService;
+import com.data.ra.service.auth.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;

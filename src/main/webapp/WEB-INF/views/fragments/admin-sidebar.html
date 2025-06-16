@@ -8,13 +8,63 @@
 <body>
 <div th:fragment="sidebar">
     <div class="admin-sidebar">
+        <div class="company-logo-box">
+            <img th:src="@{/images/company.svg}" alt="Logo" class="logo" />
+            <h2 class="company-name">
+                My <span class="highlight">Company</span>
+            </h2>
+        </div>
         <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}">Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" th:href="@{/admin/candidate}">Candidate</a></li>
-            <li class="nav-item"><a class="nav-link" th:href="@{/admin/technology}">Technology</a></li>
-            <li class="nav-item"><a class="nav-link" th:href="@{/admin/recruitment-position}">Recruitment position</a></li>
-            <li class="nav-item"><a class="nav-link" th:href="@{/admin/application}">Application</a></li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/admin/dashboard}"
+                   th:classappend="${#httpServletRequest.requestURI == '/admin/dashboard'} ? ' active'">
+                    <img class="nav-icon" th:src="@{/images/dashboard.svg}" alt="Dashboard" width="16" height="16" style="margin-right: 8px;">
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/admin/candidate}"
+                   th:classappend="${#httpServletRequest.requestURI == '/admin/candidate'} ? ' active'">
+                    <img class="nav-icon" th:src="@{/images/candidate.svg}" alt="Candidate" width="16" height="16" style="margin-right: 8px;">
+                    Candidate
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/admin/technology}"
+                   th:classappend="${#httpServletRequest.requestURI == '/admin/technology'} ? ' active'">
+                    <img class="nav-icon" th:src="@{/images/technology.svg}" alt="Technology" width="16" height="16" style="margin-right: 8px;">
+                    Technology
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/admin/recruitment-position}"
+                   th:classappend="${#httpServletRequest.requestURI == '/admin/recruitment-position'} ? ' active'">
+                    <img class="nav-icon" th:src="@{/images/recruitment.svg}" alt="Recruitment" width="16" height="16" style="margin-right: 8px;">
+                    Recruitment position
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/admin/application}"
+                   th:classappend="${#httpServletRequest.requestURI == '/admin/application'} ? ' active'">
+                    <img th:src="@{/images/application.svg}" alt="Application Icon"
+                         class="nav-icon" width="16" height="16" style="margin-right: 8px;">
+                    Application
+                </a>
+            </li>
         </ul>
+
+        <div class="profile-section">
+            <div class="profile-info">
+                <div class="profile-avatar" >A</div>
+                <div class="profile-details">
+                    <h4>Admin</h4>
+                    <p>admin@email.com</p>
+                </div>
+            </div>
+            <a href="/auth/logout" class="btn btn-danger btn-sm">Đăng xuất</a>
+        </div>
+
+
     </div>
 </div>
 </body>
