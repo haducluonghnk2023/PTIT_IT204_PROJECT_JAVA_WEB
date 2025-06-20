@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "users")
@@ -16,7 +17,7 @@ import javax.persistence.*;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     private String username;
     private String email;
@@ -25,4 +26,8 @@ public class User {
 
     @Column(name = "remember_token")
     private String rememberToken;
+    private String resetToken;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date tokenExpiry;
+
 }

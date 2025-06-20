@@ -4,126 +4,419 @@
   <meta charset="UTF-8">
   <title>Edit Personal Information</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/information.css}">
   <style>
     .tech-tag {
       background-color: #fcd34d;
       color: #000;
-      padding: 2px 8px;
-      border-radius: 8px;
-      margin-right: 6px;
-      font-size: 0.9rem;
-    }
-    .btn-outline-red {
-      border: 2px solid #dc3545;
-      color: #dc3545;
-    }
-    .btn-outline-red:hover {
-      background-color: #dc3545;
-      color: #fff;
+      padding: 6px 8px 6px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 157, 0, 1);
+      background-color: rgba(255, 227, 181, 1);
+      color: rgba(255, 157, 0, 1);
+      vertical-align: middle;
     }
     .footer {
-      background-color: #f8f9fa;
       padding: 2rem 0;
       font-size: 0.9rem;
+    }
+    .select-tall {
+      height: 200px; /* hoặc giá trị bạn muốn */
     }
   </style>
 </head>
 <body>
+<!-- Modal change inf -->
+<div class="modal fade" id="changeInfoModal" tabindex="-1" aria-labelledby="changeInfoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 510px;">
+    <div class="modal-content" style="border-radius: 10px;">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changeInfoModalLabel"
+            style="color: rgba(0, 0, 0, 1); font-family: Inter; font-weight: 600; font-size: 20px; line-height: 24px;">
+          Change Information
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form action="/candidate/information/update" method="post" th:object="${candidate}">
+        <!-- Hidden field cho ID -->
+        <input type="hidden" th:field="*{id}">
+
+        <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
+          <div class="row">
+            <!-- Name -->
+            <div class="col-12 mb-3">
+              <label class="form-label custom-label">Name <span class="required-star">*</span></label>
+              <input type="text" class="form-control custom-input"
+                     th:field="*{name}"
+                     th:value="${candidate.name != null ? candidate.name : ''}"
+                     placeholder="Enter your name">
+            </div>
+
+            <!-- Email -->
+            <div class="col-12 mb-3">
+              <label class="form-label custom-label">Email <span class="required-star">*</span></label>
+              <input type="email" class="form-control custom-input"
+                     th:field="*{email}"
+                     th:value="${candidate.email != null ? candidate.email : ''}"
+                     placeholder="Enter your email">
+            </div>
+
+            <!-- Phone -->
+            <div class="col-12 mb-3">
+              <label class="form-label custom-label">Phone</label>
+              <input type="text" class="form-control custom-input"
+                     th:field="*{phone}"
+                     th:value="${candidate.phone != null ? candidate.phone : ''}"
+                     placeholder="Enter your phone number">
+            </div>
+
+            <!-- Experience -->
+            <div class="col-12 mb-3">
+              <label class="form-label custom-label">Experience <span class="required-star">*</span></label>
+              <input type="number" class="form-control custom-input"
+                     th:field="*{experience}"
+                     th:value="${candidate.experience != null ? candidate.experience : ''}"
+                     placeholder="Years of experience">
+            </div>
+
+            <!-- Gender -->
+            <div class="col-12 mb-3">
+              <label class="form-label custom-label">Gender <span class="required-star">*</span></label>
+              <select class="form-control custom-input" th:field="*{gender}">
+                <option value="">Select Gender</option>
+                <option value="MALE" th:selected="${candidate.gender == 'MALE'}">Male</option>
+                <option value="FEMALE" th:selected="${candidate.gender == 'FEMALE'}">Female</option>
+                <option value="OTHER" th:selected="${candidate.gender == 'OTHER'}">Other</option>
+              </select>
+            </div>
+
+            <!-- Date Of Birth -->
+            <div class="col-12 mb-3">
+              <label class="form-label custom-label">Date Of Birth <span class="required-star">*</span></label>
+              <input type="date" class="form-control custom-input"
+                     name="dobString"
+                     th:value="${candidate.dob != null ? #dates.format(candidate.dob, 'yyyy-MM-dd') : ''}">
+            </div>
+
+            <!-- Technology -->
+            <div class="col-12 mb-3">
+              <label class="form-label custom-label">Technology <span class="required-star">*</span></label>
+              <select name="technologyIds" multiple class="form-control custom-input select-tall">
+                <option th:each="tech : ${allTechnologies}"
+                        th:value="${tech.id}"
+                        th:text="${tech.name}"
+                        th:selected="${technologyIds.contains(tech.id)}">
+                </option>
+              </select>
+            </div>
+
+            <!-- Description -->
+            <div class="col-12 mb-3">
+              <label class="form-label">Descriptions <span class="required-star">*</span></label>
+              <textarea class="form-control custom-textarea" rows="5"
+                        th:field="*{description}"
+                        placeholder="Enter your description">
+              </textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer justify-content-end gap-3">
+          <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-save">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- Modal chang pass-->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 10px;">
+      <div class="modal-header">
+        <h5 class="modal-title" style="color: rgba(0, 0, 0, 1); font-family: Inter; font-weight: 600; font-size: 20px; line-height: 24px;" id="changePasswordLabel">Change Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form action="/candidate/information/change-password" method="post">
+        <div class="modal-body">
+          <!-- Thông báo lỗi -->
+          <div th:if="${errorPassword}" class="alert alert-danger" th:text="${errorPassword}"></div>
+
+          <!-- Thông báo thành công -->
+          <div th:if="${successPassword}" class="alert alert-success" th:text="${successPassword}"></div>
+
+          <!-- Old Password -->
+          <div class="mb-3">
+            <label class="form-label">Old Password <span class="required-star">*</span></label>
+            <input type="password" name="oldPassword" class="form-control" required>
+          </div>
+
+          <!-- New Password -->
+          <div class="mb-3">
+            <label class="form-label">New Password <span class="required-star">*</span></label>
+            <input type="password" name="newPassword" class="form-control" required>
+          </div>
+
+          <!-- Confirm New Password -->
+          <div class="mb-3">
+            <label class="form-label">Confirm New Password <span class="required-star">*</span></label>
+            <input type="password" name="confirmPassword" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="modal-footer justify-content-end gap-3">
+          <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 
 <!-- Header -->
 <nav class="navbar bg-white shadow-sm py-3">
   <div class="container d-flex justify-content-between align-items-center">
-    <img th:src="@{/images/intership.svg}" alt="Logo" width="110" height="25">
-    <button style="background-color: rgba(171, 31, 36, 1);
-                   color: #fff;
-                   border-radius: 8px;
-                   font-family: Roboto;
-                   font-weight: 700;
-                   font-size: 16px;
-                   padding: 8px 20px;
-                   border: 1px solid rgba(171, 31, 36, 1);">
+    <!-- Logo -->
+    <a th:href="@{/}">
+      <img th:src="@{/images/intership.svg}" alt="Logo" width="110" height="25">
+    </a>
+    <!-- Dropdown khi đã đăng nhập (admin hoặc candidate) -->
+    <div class="dropdown d-flex align-items-center gap-2"
+         th:if="${session.currentAdmin != null or session.currentCandidate != null}">
+
+      <!-- Phần chào và tên không bật dropdown -->
+      <span style="font-family: Roboto; font-size: 25px; color: rgba(0, 0, 0, 1); font-weight: 700;">
+            Hello,
+            <span style="color: rgba(171, 31, 36, 1)"
+                  th:text="${session.currentAdmin != null} ? ${session.currentAdmin.username} : ${session.currentCandidate.username}">
+                User
+            </span>
+            </span>
+
+      <!-- Icon dropdown toggle -->
+      <button class="btn p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+              style="background: none;">
+        <img th:src="@{/images/dd.svg}" alt="▼" width="20" height="20">
+      </button>
+
+      <!-- Dropdown menu -->
+      <ul class="dropdown-menu dropdown-menu-end mt-2">
+        <li>
+          <a class="dropdown-item"
+             style="color: rgba(0, 0, 0, 1); font-family: Roboto; font-weight: 500; font-size: 18px;"
+             th:href="@{/candidate/information}">Information</a>
+        </li>
+        <li>
+          <a class="dropdown-item"
+             style="color: rgba(0, 0, 0, 1); font-family: Roboto; font-weight: 500; font-size: 18px;"
+             th:href="@{/candidate/my-application}">My application</a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <a class="dropdown-item"
+             style="color: rgba(171, 31, 36, 1); font-family: Roboto; font-weight: 500; font-size: 18px;"
+             th:href="@{/auth/logout}">Logout</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Nếu chưa đăng nhập -->
+    <a th:if="${session.currentAdmin == null and session.currentCandidate == null}" href="/auth/login"
+       style="background-color: rgba(171, 31, 36, 1);
+                  color: #fff;
+                  border-radius: 8px;
+                  font-family: Roboto;
+                  font-weight: 700;
+                  font-size: 16px;
+                  padding: 8px 20px;
+                  border: 1px solid rgba(171, 31, 36, 1);
+                  text-decoration: none;">
       Sign In / Sign Up
-    </button>
+    </a>
   </div>
 </nav>
 
-
 <!-- Content -->
 <div class="container mt-5 mb-5">
-  <h4 class="fw-bold mb-4">Edit personal information</h4>
+  <h4 style="font-family: Roboto;
+              font-weight: 700;
+              font-size: 40px;
+              line-height: 100%;
+              vertical-align: middle;
+              color: rgba(0, 0, 0, 1);
+              margin-bottom: 20px;">
+    Edit personal information
+  </h4>
+    <p style="font-family: Roboto;
+                 font-weight: 600;
+                 font-size: 30px;
+                 line-height: 100%;
+                 vertical-align: middle;
+                 color: rgba(0, 0, 0, 1)">
+       Information
+    </p>
 
-  <form>
+  <form style="width: 1000px; height: 587px" th:action="@{/candidate/update}" method="post">
     <div class="row mb-3">
       <div class="col-md-6 mb-3">
-        <label class="form-label">Name *</label>
-        <input type="text" class="form-control" value="Nguyen Van A">
+        <label class="form-label custom-label">
+          Name <span class="required-star">*</span>
+        </label>
+        <input type="text" class="form-control custom-input"
+               th:value="${candidate.name != null ? candidate.name : ''}" readonly>
       </div>
+
       <div class="col-md-6 mb-3">
-        <label class="form-label">Email *</label>
-        <input type="email" class="form-control" value="nguyenvana@gmail.com">
+        <label class="form-label custom-label">
+          Email <span class="required-star">*</span>
+        </label>
+        <input type="email" class="form-control custom-input"
+               th:value="${candidate.email != null ? candidate.email : ''}" readonly>
       </div>
+
       <div class="col-md-6 mb-3">
-        <label class="form-label">Experience *</label>
-        <input type="number" class="form-control" value="4">
+        <label class="form-label custom-label">
+          Experience <span class="required-star">*</span>
+        </label>
+        <input type="number" class="form-control custom-input"
+               th:value="${candidate.experience != null ? candidate.experience : ''}" readonly>
       </div>
+
       <div class="col-md-6 mb-3">
-        <label class="form-label">Gender *</label>
-        <input type="text" class="form-control" value="Male">
+        <label class="form-label custom-label">
+          Gender <span class="required-star">*</span>
+        </label>
+        <input type="text" class="form-control custom-input"
+               th:value="${candidate.gender != null ? candidate.gender : ''}" readonly>
       </div>
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Date Of Birth *</label>
-        <input type="date" class="form-control" value="1993-02-11">
-      </div>
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Technology *</label><br>
-        <span class="tech-tag">Front End</span>
-        <span class="tech-tag">Back End</span>
-      </div>
+
       <div class="col-12 mb-3">
-        <label class="form-label">Descriptions *</label>
-        <textarea class="form-control" rows="5">
-Hello, my name is Nguyen Van A. I graduated from University of Transport and Communications with a degree in Data Science. I have 4 years of experience working in Tech Lead, with a strong focus on ReactJS, Java, Spring Framework, SQL...
-                </textarea>
+        <label class="form-label custom-label">
+          Date Of Birth <span class="required-star">*</span>
+        </label>
+        <input type="date" class="form-control custom-input"
+               th:value="${candidate.dob != null ? #dates.format(candidate.dob, 'yyyy-MM-dd') : ''}" readonly>
       </div>
-      <div class="col-12 d-flex gap-3">
-        <button class="btn btn-danger w-50">Change Information</button>
-        <button class="btn btn-outline-red w-50">Change Password</button>
+
+      <!-- Technology -->
+      <div class="col-12 mb-3">
+        <label class="form-label custom-label">
+          Technology <span class="required-star">*</span>
+        </label>
+        <div class="form-control custom-input d-flex flex-wrap gap-2" style="height: auto;">
+        <span class="tech-tag"
+              th:each="tech : ${candidate.technologies}"
+              th:text="${tech.name}">Technology</span>
+          <span th:if="${candidate.technologies == null || #lists.isEmpty(candidate.technologies)}" readonly>No technology</span>
+        </div>
+      </div>
+
+      <div class="col-12 mb-3">
+        <label class="form-label">Descriptions <span class="required-star">*</span></label>
+        <textarea class="form-control custom-textarea" rows="5"
+                  th:text="${candidate.description != null ? candidate.description : ''}" readonly></textarea>
+      </div>
+
+      <!-- change inform -->
+      <div class="col-12 d-flex gap-3 mb-3">
+        <button type="button" class="btn custom-btn w-50" data-bs-toggle="modal" data-bs-target="#changeInfoModal">
+          Change Information
+        </button>
+        <button type="button" class="btn custom-btn w-50" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+          Change Password
+        </button>
       </div>
     </div>
   </form>
 </div>
 
 <!-- Footer -->
-<footer class="footer border-top">
+<footer class="footer">
   <div class="container">
-    <div class="text-center mb-4 fw-semibold">
-      International Education and Human Resources Development Organization - Rikkei Education
+    <div class="d-flex justify-content-between  mb-4">
+      <div style="font-family: Roboto;
+             font-weight: 600;
+             font-size: 25px;
+             line-height: 100%;
+             vertical-align: middle;
+             color: rgba(103, 103, 103, 1);
+             padding-bottom: 30px;
+             ">
+        International Education and Human Resources Development Organization - Rikkei Education
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <img th:src="@{/images/fb.svg}" alt="" width="35" height="35">
+        <img th:src="@{/images/yt.svg}" alt="" width="35" height="28">
+      </div>
     </div>
-    <div class="row">
-      <div class="col-md-4 mb-3">
-        <h6 class="fw-bold">CONTACT INFORMATION</h6>
-        <p class="mb-1"><strong>Hanoi headquarters</strong></p>
-        <p>7th Floor, Block A, Song Da Building, Pham Hung Street, My Dinh 1 Ward, Nam Tu Liem District, Hanoi</p>
-        <p><strong>Phone:</strong> 0862 069 233</p>
-        <p><strong>Email:</strong> academy@rikkeisoft.com</p>
+
+    <div class="row border-top pt-4" style="border-top: 2px solid rgba(218, 218, 218, 1);">
+
+      <!-- Cột 1 -->
+      <div class="col-md-4 mb-3" style="min-height: 460px;width: 605px;">
+        <h6 style="font-family: Roboto;font-weight: 600;font-size: 25px;color: rgba(103, 103, 103, 1)">CONTACT INFORMATION</h6>
+
+        <p class="mb-1 d-flex align-items-center gap-2" style="font-family: Roboto; font-weight: 600; font-size: 20px; color: rgba(103, 103, 103, 1);">
+          <img th:src="@{/images/location.svg}" alt="" width="24" height="24">
+          Hanoi headquarters
+        </p>
+
+        <p style="font-family: Roboto;font-weight: 600;font-size: 18px;color: rgba(41, 41, 41, 1)">7th Floor, Block A, Song Da Building, Pham Hung Street, My Dinh 1 Ward, Nam Tu Liem District, Hanoi</p>
+
+        <div class="d-flex align-items-center gap-2" style="font-size: 20px; color: rgba(103, 103, 103, 1);">
+          <img th:src="@{/images/phone.svg}" alt="" width="24" height="24">
+          Phone Number
+        </div>
+        <p style="font-size: 18px; color: rgba(41, 41, 41, 1); font-weight: 600;">0862 069 233</p>
+
+        <div class="d-flex align-items-center gap-2" style="font-size: 20px; color: rgba(103, 103, 103, 1);">
+          <img th:src="@{/images/email.svg}" alt="" width="24" height="24">
+          Email
+        </div>
+        <p style="font-size: 18px; color: rgba(41, 41, 41, 1); font-weight: 600;">academy@rikkeisoft.com</p>
       </div>
-      <div class="col-md-4 mb-3">
-        <h6 class="fw-bold">QUICK LINKS</h6>
-        <ul class="list-unstyled">
-          <li><a href="#">Overview</a></li>
-          <li><a href="#">Internship position</a></li>
-          <li><a href="#">Internship application</a></li>
-          <li><a href="#">My tasks</a></li>
-        </ul>
+
+      <!-- Cột 2 -->
+      <div class="col-md-4 mb-3" style="min-height: 460px;width: 250px;">
+        <h6 style="color: rgba(103, 103, 103, 1);font-family: Roboto;font-weight: 600;font-size: 25px;vertical-align: middle">QUICK LINKS</h6>
+         <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">Overview</p>
+         <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">Intership position</p>
+         <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">Intership application</p>
+         <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">My tasks</p>
       </div>
-      <div class="col-md-4 mb-3">
-        <h6 class="fw-bold">LIST OF BRANCHES</h6>
-        <p class="mb-1"><strong>Branch 1</strong><br>
-          7th Floor, Block A, Song Da Building, My Dinh 1 Ward, Hanoi<br>
-          <strong>Phone:</strong> 0862 069 233</p>
-        <p><strong>Branch 2</strong><br>
-          3rd Floor, TSA Building, 77 Le Trung Nghia, Tan Binh, HCMC<br>
-          <strong>Phone:</strong> 0962 703 893</p>
+
+      <!-- Cột 3 -->
+      <div class="col-md-4 mb-3" style="min-height: 460px;width: 465px">
+        <h6 style="color: rgba(103, 103, 103, 1);font-family: Roboto;font-weight: 600;font-size: 25px;vertical-align: middle">LIST OF BRANCHES</h6>
+        <div style="color: rgba(41, 41, 41, 1);font-size: 20px;font-weight: 600;font-family: Roboto;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">Branch 1</div>
+        <p  style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+            <img th:src="@{/images/location.svg}" alt="" width="24" height="24">
+            Address: <br>
+            <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0">7th Floor, Block A, Song Da Building, My Dinh 1 Ward, Hanoi</p>
+        </p>
+        <div style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+          <img th:src="@{/images/phone.svg}" alt="" width="24" height="24">
+          Phone: <br>
+          <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-top: 10px">0862 069 233</p>
+        </div>
+        <div style="color: rgba(41, 41, 41, 1);font-size: 20px;font-weight: 600;font-family: Roboto;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">Branch 2</div>
+        <p  style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+            <img th:src="@{/images/location.svg}" alt="" width="24" height="24">
+            Address: <br>
+            <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0">3rd Floor, TSA Building, No. 77 Le Trung Nghia Street, Ward 12, Tan Binh District, Ho Chi Minh City</p>
+        </p>
+        <div style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+          <img th:src="@{/images/phone.svg}" alt="" width="24" height="24">
+          Phone: <br>
+          <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-top: 10px">0962 703 893</p>
+        </div>
       </div>
     </div>
   </div>
@@ -131,6 +424,27 @@ Hello, my name is Nguyen Van A. I graduated from University of Transport and Com
 
 <!-- Bootstrap JS (optional) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  let hasError = /*[[${errorPassword != null}]]*/ false;
+  let hasSuccess = /*[[${successPassword != null}]]*/ false;
+
+  const modalElement = document.getElementById('changePasswordModal');
+  const modal = new bootstrap.Modal(modalElement);
+
+  if (hasError || hasSuccess) {
+    modal.show();
+  }
+
+  if (hasSuccess) {
+    setTimeout(() => {
+      modal.hide();
+    }, 1000); // 1 giây
+  }
+  /*]]>*/
+</script>
+
+
 
 </body>
 </html>

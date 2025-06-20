@@ -1,0 +1,81 @@
+body {
+    background-color: #f9f9f9;
+    font-family: 'Inter', sans-serif;
+}
+.header {
+    background: linear-gradient(90deg, #c8102e 0%, #9a0b1f 100%);
+    padding: 24px 32px;
+    color: white;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+.search-box input {
+    border-radius: 8px;
+    border: 1px solid rgba(181, 181, 181, 1);
+    width: 320px;
+    margin-right: 10px;
+}
+.job-card {
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(234, 234, 234, 1);
+}
+.job-card:hover {
+    box-shadow: 0 2px 8px rgba(198, 51, 51, 0.1);
+}
+
+.tag {
+    background-color: rgba(227, 255, 254, 1);
+    border: 1px solid rgba(57, 215, 255, 1);
+    color: rgba(57, 215, 255, 1);
+    font-size: 12px;
+    padding: 6px 8px 6px 8px;
+    border-radius: 8px;
+    margin-right: 6px;
+}
+.apply-btn {
+    background-color: rgba(171, 31, 36, 1);
+    color: rgba(255, 255, 255, 1);
+    border-radius: 8px;
+    font-size: 20px;
+    font-family: Roboto;
+    font-weight: 700;
+    width: 130px;
+    height:40px;
+    border: none;
+}
+.detail-btn {
+    border: 2px solid rgba(171, 31, 36, 1);
+    color: rgba(171, 31, 36, 1);
+    border-radius: 8px;
+    background-color: white;
+    margin-right: 12px;
+    font-size: 20px;
+    font-family: Roboto;
+    font-weight: 700;
+    background-color: rgba(255, 246, 247, 1);
+    width: 130px;
+    height: 40px;
+}
+.header {
+    background-image: url('/images/navirc.png'); /* hoặc đường dẫn ảnh bạn muốn */
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+}
+.custom-placeholder::placeholder {
+    color: rgba(0, 0, 0, 0.3); /* hoặc 0.2 cho mờ hơn nữa */
+}
+.footer {
+    padding: 2rem 0;
+    font-size: 0.9rem;
+}
+/*.job-scroll-container {*/
+/*    max-height: 450px; !* hoặc 65vh nếu muốn dùng theo tỉ lệ màn hình *!*/
+/*    overflow-y: auto;*/
+/*    padding-right: 8px; !* để không bị che mất scrollbar *!*/
+/*}*/

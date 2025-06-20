@@ -45,4 +45,9 @@ public class TechnologyServiceImpl implements TechnologyService {
         Technology existing = technologyRepository.findByName(name.trim());
         return existing != null && !existing.getId().equals(currentId);
     }
+
+    @Override
+    public List<Technology> findByIds(List<Long> ids) {
+        return technologyRepository.findByIds(ids);
+    }
 }

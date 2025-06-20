@@ -158,6 +158,25 @@ public class CandidateRepositoryImpl implements CandidateRepository {
         }
     }
 
+    @Override
+    public Candidate findByUserId(Integer userId) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM Candidate c WHERE c.user.id = :userId";
+            Query<Candidate> query = session.createQuery(hql, Candidate.class);
+            query.setParameter("userId", userId);
+            return query.uniqueResult();
+        }
+    }
+
+    @Override
+    public void save(Candidate candidate) {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            session.saveOrUpdate(candidate);
+            session.getTransaction().commit();
+        }
+    }
+
     private String generateRandomPassword() {
         int length = 10;
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

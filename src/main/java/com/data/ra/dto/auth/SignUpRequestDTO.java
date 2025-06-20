@@ -3,7 +3,6 @@ package com.data.ra.dto.auth;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
@@ -21,6 +20,10 @@ public class SignUpRequestDTO {
     private String email;
 
     @NotBlank(message = "Mật khẩu không được để trống")
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$",
+            message = "Mật khẩu phải có ít nhất 6 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt"
+    )
     private String password;
 
     @NotBlank(message = "Xác nhận mật khẩu không được để trống")

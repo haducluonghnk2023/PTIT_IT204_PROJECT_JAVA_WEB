@@ -51,6 +51,10 @@ dependencies {
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.1.0'
     //
     implementation 'org.springframework.security:spring-security-core:5.8.5'
+
+    implementation 'org.springframework:spring-context-support:5.3.33'
+    implementation 'com.sun.mail:javax.mail:1.6.2'
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }

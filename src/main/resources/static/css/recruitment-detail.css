@@ -1,0 +1,22 @@
+.tag {
+    background-color: rgba(227, 255, 254, 1);
+    border: 1px solid rgba(57, 215, 255, 1);
+    color: rgba(57, 215, 255, 1);
+    font-size: 12px;
+    padding: 6px 8px 6px 8px;
+    border-radius: 8px;
+    margin-right: 6px;
+}
+.job-card {
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 2px solid rgba(217, 217, 217, 1);
+}
+.footer {
+    padding: 2rem 0;
+    font-size: 0.9rem;
+}

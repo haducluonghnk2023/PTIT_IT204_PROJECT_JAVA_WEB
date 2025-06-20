@@ -40,4 +40,14 @@ public class CandidateServiceImpl implements  CandidateService {
     public int countFilteredCandidates(String name, Integer experience, int minAge, int maxAge, String gender, String technology) {
         return candidateRepository.countFilteredCandidates(name, experience, minAge, maxAge, gender, technology);
     }
+
+    @Override
+    public Candidate findByUserId(Integer userId) {
+        return candidateRepository.findByUserId(userId);
+    }
+
+    @Override
+    public void save(Candidate candidate) {
+        candidateRepository.save(candidate);
+    }
 }

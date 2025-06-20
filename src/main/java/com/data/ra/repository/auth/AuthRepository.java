@@ -7,7 +7,11 @@ public interface AuthRepository {
     User findByEmail(String email);
     User login(String email, String password);
     User findByRememberToken(String token);
-    void updateRememberToken(Long userId, String token);
+    void updateRememberToken(Integer userId, String token);
     void removeRememberToken(String token);
     boolean register(SignUpRequestDTO request);
+    void save(User user);
+    void saveResetToken(String email, String token);
+    User findByResetToken(String token);
+    boolean resetPassword(String token, String password);
 }

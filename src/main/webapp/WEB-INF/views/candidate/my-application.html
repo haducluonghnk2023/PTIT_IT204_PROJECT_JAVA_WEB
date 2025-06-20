@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Application</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/my-application.css}">
+    <style>
+        thead.table-light th {
+            background-color: rgba(249, 250, 251, 1);
+            font-weight: 500;
+            font-size: 12px;
+            vertical-align: middle;
+            color: rgba(102, 112, 133, 1);
+            font-family: Inter;
+            border: 1px solid rgba(234, 236, 240, 1);
+            text-align: left;
+        }
+        /* Các dòng dữ liệu */
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        tbody td {
+            vertical-align: middle;
+            padding: 16px 24px;
+            font-weight: 400;
+            border: 1px solid #dee2e6;
+            text-align: left;
+        }
+        /* Link tên vị trí tuyển dụng */
+        tbody td a {
+            color: rgba(16, 24, 40, 1);
+            font-weight: 500;
+            font-family: Inter;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 20px;
+        }
+        .footer {
+            padding: 2rem 0;
+            font-size: 0.9rem;
+        }
+        td.tech-cell {
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        /* Thẻ tag công nghệ rút gọn và nhỏ hơn */
+        .tech-tag {
+            display: inline-flex;                     /* 👈 dùng inline-flex để nằm cùng dòng */
+            align-items: center;                      /* căn giữa dọc */
+            justify-content: center;                  /* căn giữa ngang */
+
+            background-color: rgba(255, 227, 181, 1);
+            color: rgba(255, 157, 0, 1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 157, 0, 1);
+
+            font-size: 12px;
+            font-weight: 500;
+            font-family: Roboto, sans-serif;
+
+            white-space: nowrap;
+            height: 31px;
+            width: 76px;
+            margin-right: 6px;                        /* khoảng cách giữa các tag */
+        }
+
+        .status-cell {
+            padding: 16px 24px;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn-pending{
+            background-color: rgba(255, 227, 181, 1);
+            border: 1px solid rgba(255, 157, 0, 1);
+            padding: 6px 8px 6px 8px;
+            border-radius: 6px;
+            color: rgba(255, 157, 0, 1);
+            height: 31px;
+            font-family: Manrope;
+            font-size: 14px;
+            font-weight: 300;
+            line-height: 100%;
+            display: flex;               /* Thêm */
+            align-items: center;         /* Căn giữa theo chiều dọc */
+            width: 76px;
+        }
+        .btn-handling{
+            background-color: rgba(195, 181, 255, 1);
+            border: 1px solid rgba(38, 0, 255, 1);
+            padding: 6px 8px 6px 8px;
+            border-radius: 6px;
+            color: rgba(38, 0, 255, 1);
+            height: 31px;
+            font-family: Manrope;
+            font-size: 14px;
+            font-weight: 300;
+            line-height: 100%;
+            display: flex;               /* Thêm */
+            align-items: center;         /* Căn giữa theo chiều dọc */
+            width: 90px;
+        }
+        .btn-interviewing{
+            background-color: rgba(181, 238, 255, 1);
+            border: 1px solid rgba(0, 204, 255, 1);
+            padding: 6px 8px 6px 8px;
+            border-radius: 6px;
+            color: rgba(0, 204, 255, 1);
+            height: 31px;
+            font-family: Manrope;
+            font-size: 14px;
+            font-weight: 300;
+            line-height: 100%;
+            display: flex;               /* Thêm */
+            align-items: center;         /* Căn giữa theo chiều dọc */
+            width: 115px;
+        }
+        .btn-done{
+            background-color: rgba(181, 255, 189, 1);
+            border: 1px solid rgba(0, 217, 54, 1);
+            padding: 6px 8px 6px 8px;
+            border-radius: 6px;
+            color: rgba(0, 217, 54, 1);
+            height: 31px;
+            font-family: Manrope;
+            font-size: 14px;
+            font-weight: 300;
+            line-height: 100%;
+            display: flex;               /* Thêm */
+            align-items: center;         /* Căn giữa theo chiều dọc */
+            width: 53px;
+        }
+    </style>
+</head>
+<body>
+<!-- Modal -->
+<form th:action="@{/admin/application/approve-interview}" method="post">
+    <!-- Hidden input để gửi id của đơn ứng tuyển -->
+    <input type="hidden" name="applicationId" id="approveApplicationId"/>
+
+    <div class="modal fade" id="approveInterviewModal" tabindex="-1" aria-labelledby="approveInterviewLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 10px;">
+                <div class="modal-header">
+                    <h5 class="modal-title app-it" id="approveInterviewLabel">Approve Interview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="d-flex">
+                        <p style="margin-right: 53px;font-weight: 700;font-family: Inter;font-size: 16px;line-height: 24px;">Created At:</p>
+                        <p class="created-at" style="color: rgba(0, 0, 0, 1);font-weight: 600;font-family: Inter;font-size: 16px;line-height: 24px;">--/--/----</p>
+                    </div>
+                    <div class="d-flex">
+                        <p style="margin-right: 55px;font-weight: 700;font-family: Inter;font-size: 16px;line-height: 24px;">Update At:</p>
+                        <p class="updated-at" style="color: rgba(0, 0, 0, 1);font-weight: 600;font-family: Inter;font-size: 16px;line-height: 24px;">--/--/----</p>
+                    </div>
+                    <div class="d-flex">
+                        <p style="margin-right: 20px;font-weight: 700;font-family: Inter;font-size: 16px;line-height: 24px;">Interview Time:</p>
+                        <p class="interview-time" style="color: rgba(0, 0, 0, 1);font-weight: 600;font-family: Inter;font-size: 16px;line-height: 24px;">--/--/----</p>
+                    </div>
+                    <div class="d-flex">
+                        <p style="margin-right: 23px;font-weight: 700;font-family: Inter;font-size: 16px;line-height: 24px;">Interview Link:</p>
+                        <a href="#" target="_blank" class="interview-link text-decoration-underline"
+                           style="color: rgba(0, 0, 0, 1); font-weight: 600;font-family: Inter;font-size: 16px;line-height: 24px;">
+                            Join Meeting
+                        </a>
+                        <img th:src="@{/images/outward.svg}" alt="Logo" width="14" height="14" style="margin-top: 8px;margin-left: 5px">
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top-0 mt-2">
+                    <!-- Cancel button -->
+                    <button type="button" class="btn d-flex align-items-center justify-content-center"
+                            style="height:44px; padding: 13px 20px; border-radius: 6px;
+                             font-family: Inter; font-weight: 500; font-size: 17px;
+                             color: rgba(24, 24, 27, 1); border: 1px solid rgba(228, 228, 231, 1);"
+                            data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <!-- Approve button -->
+                    <button type="submit" class="btn d-flex align-items-center justify-content-center"
+                            style="height:44px; background-color: rgba(171, 31, 36, 1);
+                             padding: 13px 20px; border-radius: 6px;
+                             font-weight: 500; font-size: 17px;
+                             color: rgba(255, 255, 255, 1);">
+                        Approve
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<!-- nav-->
+<nav class="navbar bg-white shadow-sm py-3">
+    <div class="container d-flex justify-content-between align-items-center">
+        <!-- Logo -->
+        <a th:href="@{/}">
+            <img th:src="@{/images/intership.svg}" alt="Logo" width="110" height="25">
+        </a>
+        <!-- Dropdown khi đã đăng nhập (admin hoặc candidate) -->
+        <div class="dropdown d-flex align-items-center gap-2"
+             th:if="${session.currentAdmin != null or session.currentCandidate != null}">
+
+            <!-- Phần chào và tên không bật dropdown -->
+            <span style="font-family: Roboto; font-size: 25px; color: rgba(0, 0, 0, 1); font-weight: 700;">
+            Hello,
+            <span style="color: rgba(171, 31, 36, 1)"
+                  th:text="${session.currentAdmin != null} ? ${session.currentAdmin.username} : ${session.currentCandidate.username}">
+                User
+            </span>
+            </span>
+
+            <!-- Icon dropdown toggle -->
+            <button class="btn p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                    style="background: none;">
+                <img th:src="@{/images/dd.svg}" alt="▼" width="20" height="20">
+            </button>
+
+            <!-- Dropdown menu -->
+            <ul class="dropdown-menu dropdown-menu-end mt-2">
+                <li>
+                    <a class="dropdown-item"
+                       style="color: rgba(0, 0, 0, 1); font-family: Roboto; font-weight: 500; font-size: 18px;"
+                       th:href="@{/candidate/information}">Information</a>
+                </li>
+                <li>
+                    <a class="dropdown-item"
+                       style="color: rgba(0, 0, 0, 1); font-family: Roboto; font-weight: 500; font-size: 18px;"
+                       th:href="@{/candidate/my-application}">My application</a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item"
+                       style="color: rgba(171, 31, 36, 1); font-family: Roboto; font-weight: 500; font-size: 18px;"
+                       th:href="@{/auth/logout}">Logout</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Nếu chưa đăng nhập -->
+        <a th:if="${session.currentAdmin == null and session.currentCandidate == null}" href="/auth/login"
+           style="background-color: rgba(171, 31, 36, 1);
+                  color: #fff;
+                  border-radius: 8px;
+                  font-family: Roboto;
+                  font-weight: 700;
+                  font-size: 16px;
+                  padding: 8px 20px;
+                  border: 1px solid rgba(171, 31, 36, 1);
+                  text-decoration: none;">
+            Sign In / Sign Up
+        </a>
+    </div>
+</nav>
+<div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+<div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
+<div th:if="${error}" class="alert alert-danger" role="alert">
+    <span th:text="${error}"></span>
+</div>
+<!-- body-->
+<div class="container mt-4">
+    <h2 class="text-center"
+        style="font-family: Roboto;
+           font-weight: 700;
+           font-size: 30px;
+           line-height: 100%;
+           background-color: rgba(234, 234, 234, 1);
+           border-top-left-radius: 6px;
+           border-top-right-radius: 8px;
+           height: 40px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           margin-bottom: 0;">
+        <span style="color: black;">My </span>
+        <span style="color: rgba(171, 31, 36, 0.95);">Application</span>
+    </h2>
+
+    <table class="table table-bordered text-center align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>STT</th>
+                <th>Recruitment Name</th>
+                <th>Technology</th>
+                <th>Created At</th>
+                <th>Update At</th>
+                <th>Process</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="app, iterStat : ${applications}">
+                <!-- STT -->
+                <td class="px-4 py-3" th:text="${iterStat.index + 1}">1</td>
+
+                <!-- Recruitment name (click để mở modal approve) -->
+                <td style="text-decoration: underline; cursor: pointer;"
+                    th:text="${app.recruitmentPosition.name}"
+                    th:attr="data-app-id=${app.id},
+                     data-created-at=${#dates.format(app.createAt, 'dd/MM/yyyy')},
+                     data-updated-at=${#dates.format(app.updateAt, 'dd/MM/yyyy')},
+                     data-interview-time=${#dates.format(app.interviewTime, 'dd/MM/yyyy HH:mm:ss')},
+                     data-interview-link=${app.interviewLink}"
+                    onclick="openInterviewApprove(this)">
+                </td>
+
+                <!-- Technologies -->
+                <td class="tech-cell px-4 py-3">
+                    <span class="tech-tag"
+                          th:each="tech : ${app.recruitmentPosition.technologies}"
+                          th:text="${tech.name}">
+                        Front End
+                    </span>
+                </td>
+
+                <!-- Created At -->
+                <td class="px-4 py-3" th:text="${#dates.format(app.createAt, 'dd/MM/yyyy')}">10/10/2022</td>
+
+                <!-- Updated At -->
+                <td class="px-4 py-3" th:text="${#dates.format(app.updateAt, 'dd/MM/yyyy')}">10/11/2022</td>
+
+                <!-- Status -->
+                <td class="status-cell px-4 py-3">
+                    <span class="badge"
+                          th:classappend="${app.progress.name() == 'pending'} ? ' btn-pending' :
+                                          (${app.progress.name() == 'handling'} ? ' btn-handling' :
+                                          (${app.progress.name() == 'interviewing'} ? ' btn-interviewing' : ' btn-done'))"
+                          th:text="${app.progress.name().toUpperCase()}">
+                        PENDING
+                    </span>
+                </td>
+
+                <!--  icon -->
+                <td class="px-4 py-3">
+                    <img th:src="@{/images/deleteicon.svg}" alt="Delete" width="30" height="30" style="cursor: pointer;">
+                    <img th:if="${app.progress.name() == 'interviewing'}"
+                         th:src="@{/images/views.svg}"
+                         alt="View"
+                         width="30"
+                         height="30"
+                         style="cursor: pointer;">
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+<!-- Pagination -->
+<div class="container">
+    <nav aria-label="Page navigation" th:if="${totalPages >0}">
+        <ul class="pagination justify-content-end gap-2">
+
+            <!-- Nút Trái -->
+            <li class="page-item" th:classappend="${page == 0} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/admin/my-application(size=${size}, page=${page - 1})}"
+                   aria-label="Previous">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+
+            <!-- Số trang -->
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${i == page} ? 'active'">
+                <a class="page-link"
+                   th:href="@{/admin/my-application(size=${size}, page=${i})}"
+                   th:text="${i + 1}"></a>
+            </li>
+
+            <!-- Nút Phải -->
+            <li class="page-item" th:classappend="${page == totalPages - 1} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/admin/my-application(size=${size}, page=${page + 1})}"
+                   aria-label="Next">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+</div>
+<!-- footer-->
+<footer class="footer">
+    <div class="container">
+        <div class="d-flex justify-content-between  mb-4">
+            <div style="font-family: Roboto;
+             font-weight: 600;
+             font-size: 25px;
+             line-height: 100%;
+             vertical-align: middle;
+             color: rgba(103, 103, 103, 1);
+             padding-bottom: 30px;
+             ">
+                International Education and Human Resources Development Organization - Rikkei Education
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/fb.svg}" alt="" width="35" height="35">
+                <img th:src="@{/images/yt.svg}" alt="" width="35" height="28">
+            </div>
+        </div>
+
+        <div class="row border-top pt-4" style="border-top: 2px solid rgba(218, 218, 218, 1);">
+
+            <!-- Cột 1 -->
+            <div class="col-md-4 mb-3" style="min-height: 460px;width: 605px;">
+                <h6 style="font-family: Roboto;font-weight: 600;font-size: 25px;color: rgba(103, 103, 103, 1)">CONTACT INFORMATION</h6>
+
+                <p class="mb-1 d-flex align-items-center gap-2" style="font-family: Roboto; font-weight: 600; font-size: 20px; color: rgba(103, 103, 103, 1);">
+                    <img th:src="@{/images/location.svg}" alt="" width="24" height="24">
+                    Hanoi headquarters
+                </p>
+
+                <p style="font-family: Roboto;font-weight: 600;font-size: 18px;color: rgba(41, 41, 41, 1)">7th Floor, Block A, Song Da Building, Pham Hung Street, My Dinh 1 Ward, Nam Tu Liem District, Hanoi</p>
+
+                <div class="d-flex align-items-center gap-2" style="font-size: 20px; color: rgba(103, 103, 103, 1);">
+                    <img th:src="@{/images/phone.svg}" alt="" width="24" height="24">
+                    Phone Number
+                </div>
+                <p style="font-size: 18px; color: rgba(41, 41, 41, 1); font-weight: 600;">0862 069 233</p>
+
+                <div class="d-flex align-items-center gap-2" style="font-size: 20px; color: rgba(103, 103, 103, 1);">
+                    <img th:src="@{/images/email.svg}" alt="" width="24" height="24">
+                    Email
+                </div>
+                <p style="font-size: 18px; color: rgba(41, 41, 41, 1); font-weight: 600;">academy@rikkeisoft.com</p>
+            </div>
+
+            <!-- Cột 2 -->
+            <div class="col-md-4 mb-3" style="min-height: 460px;width: 250px;">
+                <h6 style="color: rgba(103, 103, 103, 1);font-family: Roboto;font-weight: 600;font-size: 25px;vertical-align: middle">QUICK LINKS</h6>
+                <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">Overview</p>
+                <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">Intership position</p>
+                <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">Intership application</p>
+                <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">My tasks</p>
+            </div>
+
+            <!-- Cột 3 -->
+            <div class="col-md-4 mb-3" style="min-height: 460px;width: 465px">
+                <h6 style="color: rgba(103, 103, 103, 1);font-family: Roboto;font-weight: 600;font-size: 25px;vertical-align: middle">LIST OF BRANCHES</h6>
+                <div style="color: rgba(41, 41, 41, 1);font-size: 20px;font-weight: 600;font-family: Roboto;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">Branch 1</div>
+                <p  style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+                    <img th:src="@{/images/location.svg}" alt="" width="24" height="24">
+                    Address: <br>
+                <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0">7th Floor, Block A, Song Da Building, My Dinh 1 Ward, Hanoi</p>
+                </p>
+                <div style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+                    <img th:src="@{/images/phone.svg}" alt="" width="24" height="24">
+                    Phone: <br>
+                    <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-top: 10px">0862 069 233</p>
+                </div>
+                <div style="color: rgba(41, 41, 41, 1);font-size: 20px;font-weight: 600;font-family: Roboto;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">Branch 2</div>
+                <p  style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+                    <img th:src="@{/images/location.svg}" alt="" width="24" height="24">
+                    Address: <br>
+                <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0">3rd Floor, TSA Building, No. 77 Le Trung Nghia Street, Ward 12, Tan Binh District, Ho Chi Minh City</p>
+                </p>
+                <div style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+                    <img th:src="@{/images/phone.svg}" alt="" width="24" height="24">
+                    Phone: <br>
+                    <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-top: 10px">0962 703 893</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<script>
+    window.addEventListener("DOMContentLoaded", () => {
+        const alerts = document.querySelectorAll(".alert");
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.transition = "opacity 0.5s ease";
+                alert.style.opacity = "0";
+                setTimeout(() => alert.remove(), 500);
+            }, 1000); // ⏱️ 1 giây
+        });
+    });
+    function openInterviewApprove(el) {
+        const appId = el.getAttribute("data-app-id");
+        const createdAt = el.getAttribute("data-created-at");
+        const updatedAt = el.getAttribute("data-updated-at");
+        const interviewTime = el.getAttribute("data-interview-time");
+        const interviewLink = el.getAttribute("data-interview-link");
+
+        // Kiểm tra dữ liệu bắt buộc
+        if (!createdAt || !updatedAt || !interviewTime || !interviewLink || interviewLink.trim() === "") {
+            Swal.fire("Thiếu dữ liệu!", "Không thể duyệt vì thông tin phỏng vấn chưa đầy đủ.", "warning");
+            return; // không mở modal nếu thiếu thông tin
+        }
+
+        // Gán ID vào input ẩn
+        const input = document.getElementById("approveApplicationId");
+        if (input) {
+            input.value = appId;
+        }
+
+        // Gán dữ liệu hiển thị
+        const modal = document.getElementById("approveInterviewModal");
+        if (modal) {
+            modal.querySelector(".created-at").textContent = createdAt;
+            modal.querySelector(".updated-at").textContent = updatedAt;
+            modal.querySelector(".interview-time").textContent = interviewTime;
+
+            const linkEl = modal.querySelector(".interview-link");
+            if (linkEl) {
+                linkEl.textContent = "Join Meeting";
+                linkEl.href = interviewLink;
+                linkEl.classList.remove("disabled");
+            }
+
+            // Hiển thị modal
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+        }
+    }
+
+
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

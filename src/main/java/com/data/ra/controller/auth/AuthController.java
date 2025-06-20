@@ -1,5 +1,6 @@
 package com.data.ra.controller.auth;
 
+import com.data.ra.dto.auth.ForgotPasswordDTO;
 import com.data.ra.dto.auth.SignUpRequestDTO;
 import com.data.ra.dto.auth.UserDTO;
 import com.data.ra.entity.auth.User;
@@ -24,18 +25,52 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @GetMapping
+    public String auth() {
+        return "redirect:/auth/login";
+    }
+
+    // ✅ Đăng nhập + Form quên mật khẩu dùng chung file
     @GetMapping("/login")
-    public String loginPage(Model model, @ModelAttribute("user") UserDTO userDTO) {
+    public String loginPage(@RequestParam(value = "forgot", required = false) String forgot,
+                            Model model,
+                            @ModelAttribute("user") UserDTO userDTO) {
         if (!model.containsAttribute("user")) {
             model.addAttribute("user", new UserDTO());
         }
-        return "auth/sign-in";
+        return "auth/sign-in"; // Thymeleaf dùng param.forgot để hiển thị đúng form
     }
 
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(@RequestParam("token") String token, Model model) {
+        User user = authService.findByResetToken(token);
+        if (user == null) {
+            model.addAttribute("error", "Token không hợp lệ hoặc đã hết hạn.");
+            return "auth/reset-password-error"; // bạn cần tạo view này nếu muốn
+        }
+        model.addAttribute("token", token);
+        return "auth/reset-password"; // trang chứa form đổi mật khẩu
+    }
 
-    @GetMapping
-    public String auth(Model model) {
-        return "redirect:/auth/login";
+    @PostMapping("/reset-password")
+    public String handleResetPassword(@RequestParam("token") String token,
+                                      @RequestParam("password") String password,
+                                      @RequestParam("confirmPassword") String confirmPassword,
+                                      RedirectAttributes redirectAttributes) {
+
+        if (!password.equals(confirmPassword)) {
+            redirectAttributes.addFlashAttribute("error", "Mật khẩu xác nhận không khớp");
+            return "redirect:/auth/reset-password?token=" + token;
+        }
+
+        boolean success = authService.resetPassword(token, password);
+        if (success) {
+            redirectAttributes.addFlashAttribute("message", "Đổi mật khẩu thành công. Vui lòng đăng nhập.");
+            return "redirect:/auth/login";
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Token không hợp lệ hoặc đã hết hạn");
+            return "redirect:/auth/reset-password?token=" + token;
+        }
     }
 
     @PostMapping("/login")
@@ -49,7 +84,14 @@ public class AuthController {
         if (result.hasErrors()) {
             return "auth/sign-in";
         }
-        User user = authService.login(userDTO.getEmail(), userDTO.getPassword());
+
+        User user;
+        try {
+            user = authService.login(userDTO.getEmail(), userDTO.getPassword());
+        } catch (IllegalStateException ex) {
+            model.addAttribute("errorLock", ex.getMessage());
+            return "auth/sign-in";
+        }
 
         if (user == null) {
             model.addAttribute("error", "Email hoặc mật khẩu không đúng");
@@ -63,7 +105,7 @@ public class AuthController {
             session.setAttribute("currentCandidate", user);
         }
 
-        // Remember me
+        // Ghi nhớ đăng nhập
         if (rememberMe != null) {
             String token = UUID.randomUUID().toString();
             authService.saveRememberToken(user.getId(), token);
@@ -74,35 +116,41 @@ public class AuthController {
             response.addCookie(cookie);
         }
 
-        // Chuyển trang sau login
-        return "admin".equalsIgnoreCase(user.getRole()) ? "redirect:/admin/dashboard" : "redirect:/candidate/information";
+        // Redirect theo vai trò
+        return "admin".equalsIgnoreCase(user.getRole()) ? "redirect:/admin/dashboard" : "redirect:/";
     }
 
-    @GetMapping("/logout")
-    public String logout(HttpSession session,
-                         HttpServletResponse response,
-                         @CookieValue(value = "remember-token", required = false) String rememberToken) {
 
-        // Xoá token trong DB nếu có
-        if (rememberToken != null) {
-            authService.removeRememberToken(rememberToken);
+    // ✅ Xử lý quên mật khẩu
+    @PostMapping("/forgot-password")
+    public String forgotPassword(@Valid @ModelAttribute("forgot") ForgotPasswordDTO forgotPasswordDTO,
+                                 BindingResult result,
+                                 RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("error", "Email không hợp lệ.");
+            return "redirect:/auth/login?forgot=true";
         }
 
-        // Xoá cookie
-        Cookie cookie = new Cookie("remember-token", null);
-        cookie.setMaxAge(0); // Xóa ngay
-        cookie.setPath("/");
-        response.addCookie(cookie);
-
-        // Invalidate session
-        if (session != null) {
-            session.invalidate();
+        User user = authService.findByEmail(forgotPasswordDTO.getEmail());
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy người dùng với email này.");
+            return "redirect:/auth/login?forgot=true";
         }
 
-        // Redirect về login
+        // Tạo token reset
+        String token = UUID.randomUUID().toString();
+        authService.saveResetToken(user.getEmail(), token); // ⚠️ bạn cần cài thêm method này
+
+        // Gửi email
+        String resetLink = "http://localhost:8080/auth/reset-password?token=" + token;
+        authService.sendResetPasswordEmail(user.getEmail(), resetLink); // ⚠️ dùng EmailService bên trong AuthService
+
+        redirectAttributes.addFlashAttribute("message", "Vui lòng kiểm tra email để đặt lại mật khẩu.");
         return "redirect:/auth/login";
     }
 
+
+    // ✅ Đăng ký
     @GetMapping("/signup")
     public String signUpPage(Model model) {
         model.addAttribute("signUpRequest", new SignUpRequestDTO());
@@ -115,29 +163,45 @@ public class AuthController {
                          RedirectAttributes redirectAttributes,
                          Model model) {
 
-        // 🔴 BƯỚC 1: Check các lỗi @NotBlank, @Email trước
         if (result.hasErrors()) {
             return "auth/sign-up";
         }
 
-        // 🔴 BƯỚC 2: Check confirm password sau khi các trường khác OK
         if (!signUpRequest.getPassword().equals(signUpRequest.getConfirmPassword())) {
             result.rejectValue("confirmPassword", "error.confirmPassword", "Mật khẩu xác nhận không khớp");
             return "auth/sign-up";
         }
 
-        // 🔴 BƯỚC 3: Kiểm tra email trùng
         boolean isRegistered = authService.register(signUpRequest);
         if (!isRegistered) {
             model.addAttribute("error", "Email đã tồn tại");
             return "auth/sign-up";
         }
 
-        redirectAttributes.addFlashAttribute("user", new UserDTO(signUpRequest.getEmail(),""));
+        redirectAttributes.addFlashAttribute("user", new UserDTO(signUpRequest.getEmail(), signUpRequest.getPassword()));
         redirectAttributes.addFlashAttribute("message", "Đăng ký thành công! Vui lòng đăng nhập.");
-        // Thành công
         return "redirect:/auth/login";
     }
 
+    // ✅ Đăng xuất
+    @GetMapping("/logout")
+    public String logout(HttpSession session,
+                         HttpServletResponse response,
+                         @CookieValue(value = "remember-token", required = false) String rememberToken) {
 
+        if (rememberToken != null) {
+            authService.removeRememberToken(rememberToken);
+        }
+
+        Cookie cookie = new Cookie("remember-token", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
+        if (session != null) {
+            session.invalidate();
+        }
+
+        return "redirect:/auth/login";
+    }
 }

@@ -12,4 +12,5 @@ public interface TechnologyRepository {
     void deleteById(Long id);
     long count(String search);
     Technology findByName(String name);
+    List<Technology> findByIds(List<Long> ids);
 }

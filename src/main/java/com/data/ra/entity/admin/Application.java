@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "application")
@@ -16,11 +16,11 @@ public class Application {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "candidateId", nullable = false)
     private Candidate candidate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "recruitmentPositionId", nullable = false)
     private RecruitmentPosition recruitmentPosition;
 
@@ -28,34 +28,31 @@ public class Application {
     private String cvUrl;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "ENUM('pending', 'handling', 'interviewing', 'done') DEFAULT 'pending'")
-    private Progress progress = Progress.PENDING;
+    @Column(nullable = false, length = 20)
+    private Progress progress = Progress.pending;
 
-    private LocalDateTime interviewRequestDate;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date interviewRequestDate;
+
     private String interviewRequestResult;
     private String interviewLink;
-    private LocalDateTime interviewTime;
     private String interviewResult;
 
-    @Column(columnDefinition = "TEXT")
+    @Column
     private String interviewResultNote;
 
-    private LocalDateTime destroyAt;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date destroyAt;
 
-    @Column(columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createAt = LocalDateTime.now();
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createAt = new Date();
 
-    @Column(columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-    private LocalDateTime updateAt = LocalDateTime.now();
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updateAt = new Date();
 
-    @Column(columnDefinition = "TEXT")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date interviewTime;
+
+    @Column
     private String destroyReason;
-
-
-    public enum Progress {
-        PENDING,
-        HANDLING,
-        INTERVIEWING,
-        DONE
-    }
 }

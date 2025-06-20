@@ -8,6 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -21,7 +22,7 @@ public class CandidateDTO {
     private int experience;
     private String gender;
     private String status;
-    private LocalDate dob;
+    private Date dob;
 
     private String firstTechnology; // công nghệ đầu tiên
     private List<String> remainingTechnologies = new ArrayList<>(); // danh sách còn lại

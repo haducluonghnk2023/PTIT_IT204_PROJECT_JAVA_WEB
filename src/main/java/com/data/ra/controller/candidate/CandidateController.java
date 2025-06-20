@@ -13,9 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -82,14 +80,11 @@ public class CandidateController {
         model.addAttribute("pageUrl", buildPageUrl(name, experience, age, gender, technology, size));
 
         // 👉 Giữ lại filter đã chọn trong form
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("name", name);
-        paramMap.put("experience", experience);
-        paramMap.put("age", age);
-        paramMap.put("gender", gender);
-        paramMap.put("technology", technology);
-
-        model.addAttribute("param", paramMap);
+        model.addAttribute("name", name);
+        model.addAttribute("experience", experience);
+        model.addAttribute("age", age);
+        model.addAttribute("gender", gender);
+        model.addAttribute("technology", technology);
 
         return "candidate/candidate";
     }
@@ -122,17 +117,6 @@ public class CandidateController {
         redirectAttributes.addAttribute("technology", technology);
         redirectAttributes.addAttribute("page", page);
         redirectAttributes.addAttribute("size", size);
-
-        return "redirect:/admin/candidate";
-    }
-
-    @PostMapping("/reset-password")
-    public String resetPassword(@RequestParam Long id,
-                                HttpSession session,
-                                RedirectAttributes redirectAttributes) {
-
-        String newPassword = candidateService.resetPasswordById(id);
-        redirectAttributes.addFlashAttribute("message", "Mật khẩu mới là: " + newPassword);
 
         return "redirect:/admin/candidate";
     }

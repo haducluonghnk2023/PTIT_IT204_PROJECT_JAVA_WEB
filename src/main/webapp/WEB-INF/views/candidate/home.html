@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <style>
+        .footer {
+            padding: 2rem 0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar bg-white shadow-sm py-3">
+    <div class="container d-flex justify-content-between align-items-center">
+        <!-- Logo -->
+        <a th:href="@{/}">
+            <img th:src="@{/images/intership.svg}" alt="Logo" width="110" height="25">
+        </a>
+        <!-- Dropdown khi đã đăng nhập (admin hoặc candidate) -->
+        <div class="dropdown d-flex align-items-center gap-2"
+             th:if="${session.currentAdmin != null or session.currentCandidate != null}">
+
+            <!-- Phần chào và tên không bật dropdown -->
+            <span style="font-family: Roboto; font-size: 25px; color: rgba(0, 0, 0, 1); font-weight: 700;">
+            Hello,
+            <span style="color: rgba(171, 31, 36, 1)"
+                  th:text="${session.currentAdmin != null} ? ${session.currentAdmin.username} : ${session.currentCandidate.username}">
+                User
+            </span>
+            </span>
+
+            <!-- Icon dropdown toggle -->
+            <button class="btn p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                    style="background: none;">
+                <img th:src="@{/images/dd.svg}" alt="▼" width="20" height="20">
+            </button>
+
+            <!-- Dropdown menu -->
+            <ul class="dropdown-menu dropdown-menu-end mt-2">
+                <li>
+                    <a class="dropdown-item"
+                       style="color: rgba(0, 0, 0, 1); font-family: Roboto; font-weight: 500; font-size: 18px;"
+                       th:href="@{/candidate/information}">Information</a>
+                </li>
+                <li>
+                    <a class="dropdown-item"
+                       style="color: rgba(0, 0, 0, 1); font-family: Roboto; font-weight: 500; font-size: 18px;"
+                       th:href="@{/candidate/my-application}">My application</a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item"
+                       style="color: rgba(171, 31, 36, 1); font-family: Roboto; font-weight: 500; font-size: 18px;"
+                       th:href="@{/auth/logout}">Logout</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Nếu chưa đăng nhập -->
+        <a th:if="${session.currentAdmin == null and session.currentCandidate == null}" href="/auth/login"
+           style="background-color: rgba(171, 31, 36, 1);
+                  color: #fff;
+                  border-radius: 8px;
+                  font-family: Roboto;
+                  font-weight: 700;
+                  font-size: 16px;
+                  padding: 8px 20px;
+                  border: 1px solid rgba(171, 31, 36, 1);
+                  text-decoration: none;">
+            Sign In / Sign Up
+        </a>
+    </div>
+</nav>
+
+<div class="hero-section">
+    <div class="container hero-content py-5">
+        <!-- Logo bên trên -->
+        <div class="row mb-4">
+            <div class="col-md-7">
+                <img th:src="@{/images/internavi.svg}" alt="Logo" width="500" height="120">
+            </div>
+        </div>
+
+        <!-- Hai đoạn văn nằm cùng hàng -->
+        <div class="row align-items-center">
+            <div class="col-md-7 d-flex align-items-center">
+                <p class="hero-subtitle mb-0">Practical experience, breakthrough technology potential</p>
+            </div>
+            <div class="col-md-5 text-end d-none d-md-block">
+                <p class="hero-p mb-0">
+                    Join the internship program to learn from experts,<br>
+                    sharpen your practical skills, and prepare for a bright future career.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" style="height: 204px">
+        <form method="get" th:action="@{/recruitment/search}" class="search-box" id="searchForm">
+            <img th:src="@{/images/finda.svg}" alt="Logo" width="400" height="25" class="mb-3" />
+
+            <div class="row g-2">
+                <!-- Advance Filter + Modal -->
+                <div class="col-md-3 d-flex align-items-center position-relative">
+                    <button type="button" onclick="submitFilterForm()" style="background: none; border: none; padding: 0; margin-right: 8px; cursor: pointer;">
+                        <img th:src="@{/images/fttool.svg}" alt="Filter Icon" style="height: 24px;" />
+                    </button>
+
+                    <div id="filterTrigger" class="form-select" style="width: 300px; cursor: pointer;" onclick="toggleFilterModal()">
+                        Advance Filter
+                    </div>
+
+                    <!-- Modal nằm ngay dưới dropdown -->
+                    <div id="filterModal" style="
+                          display: none;
+                          position: absolute;
+                          top: 100%;
+                          left: 32px;
+                          margin-top: 8px;
+                          z-index: 9999;
+                          background: white;
+                          padding: 20px;
+                          border: 1px solid #ccc;
+                          border-radius: 8px;
+                          width: 400px;
+                        ">
+                        <!-- Work Location -->
+                        <div class="mb-2" style="color: rgba(103, 103, 123, 1); font-weight: 600;">Work location</div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="location" id="hcm" value="HCM"
+                                   th:checked="${selectedLocation == 'HCM'}" />
+                            <label class="form-check-label" style="color: rgba(132, 132, 164, 1);font-family: Inter;font-weight: 400;font-size: 14px" for="hcm">Ho Chi Minh City</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="location" id="hn" value="HN"
+                                   th:checked="${selectedLocation == 'HN'}" />
+
+                            <label class="form-check-label" style="color: rgba(132, 132, 164, 1);font-family: Inter;font-weight: 400;font-size: 14px" for="hn">Ha Noi City</label>
+                        </div>
+
+                        <!-- Work Type -->
+                        <div class="mb-2" style="color: rgba(103, 103, 123, 1); font-weight: 600;">Work Type</div>
+                        <div style="display: flex;">
+                            <div class="form-check me-4" >
+                                <input class="form-check-input" type="radio" name="type" id="fulltime" value="FullTime"
+                                       th:checked="${selectedType == 'FullTime'}" />
+                                <label class="form-check-label" style="color: rgba(132, 132, 164, 1);font-family: Inter;font-weight: 400;font-size: 14px;margin-right: 60px" for="fulltime">Full Time</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="type" id="parttime" value="PartTime"
+                                       th:checked="${selectedType == 'PartTime'}" />
+                                <label class="form-check-label" style="color: rgba(132, 132, 164, 1);font-family: Inter;font-weight: 400;font-size: 14px" for="parttime">Part Time</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input search -->
+                <div class="col-md-7">
+                    <input type="text" class="form-control" name="keyword" placeholder="Enter internship position ..." />
+                </div>
+
+                <!-- Search button -->
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-s">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+</div>
+
+<!-- Best Position Section -->
+<div class="container my-5">
+    <!-- Tiêu đề -->
+    <div class="d-flex justify-content-between align-items-center mb-4"
+         style="background-color: rgba(238, 238, 238, 1);height: 100px;
+         border-top-left-radius: 16px;
+         border-top-right-radius: 16px;
+         padding: 20px 25px">
+        <img th:src="@{/images/bestpo.svg}" alt="Logo" height="30">
+    </div>
+
+    <div th:if="${notFound}" class="alert alert-warning mt-3" role="alert" style="font-weight: 500; color: #a94442;">
+        Không tìm thấy kết quả phù hợp với tìm kiếm của bạn.
+    </div>
+    <!-- Danh sách vị trí -->
+    <div class="row g-4">
+        <div class="col-md-4" th:each="recruitment : ${recruitmentPosition}">
+            <div class="card h-100 border">
+                <div class="card-body d-flex">
+                    <!-- Cột ảnh -->
+                    <div class="me-3 flex-shrink-0">
+                        <img th:src="@{/images/job.svg}" alt="Logo" width="60" height="60">
+                    </div>
+
+                    <!-- Cột nội dung -->
+                    <div class="flex-grow-1 d-flex flex-column justify-content-between">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 style="font-family: Roboto;font-weight: 600;font-size: 17px;line-height: 100%;vertical-align: middle;color: rgba(0, 0, 0, 1)" th:text="${recruitment.name}"></h6>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="badge d-flex align-items-center justify-content-center"
+                                  style="background-color: rgba(227, 255, 254, 1);
+                                         border: 1px solid rgba(57, 215, 255, 1);
+                                         border-radius: 8px;
+                                         color: rgba(57, 215, 255, 1);
+                                         height: 25px;
+                                         padding: 0 12px;"
+                                         th:each="tech : ${recruitment.technologiesHtml}"
+                                         th:text="${tech.name}">
+                                Technology
+                            </span>
+                            <span class="badge d-flex align-items-center justify-content-center gap-1 ms-4"
+                                  style="background-color: rgba(245, 245, 245, 1);
+                                 border-radius: 8px;
+                                 height: 20px;
+                                 width:  20px;
+                                 padding: 0 12px;
+                                 color: #666;">
+                                <p class="mb-0" th:text="${recruitment.timeAgo}" style="font-size: 14px; line-height: 1;"></p>
+                            </span>
+                        </div>
+                    </div>
+                    <a th:href="@{'/candidate/list-recruitment/details'(id=${recruitment.id})}" style="text-decoration: none;">
+                        <div class="d-flex align-items-center justify-content-center ms-3" style="cursor: pointer;">
+                            <img th:src="@{/images/outward.svg}" alt="Logo" width="30" height="30" style="margin-top: 15px;">
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<footer class="footer">
+    <div class="container">
+        <div class="d-flex justify-content-between  mb-4">
+            <div style="font-family: Roboto;
+             font-weight: 600;
+             font-size: 25px;
+             line-height: 100%;
+             vertical-align: middle;
+             color: rgba(103, 103, 103, 1);
+             padding-bottom: 30px;
+             ">
+                International Education and Human Resources Development Organization - Rikkei Education
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <img th:src="@{/images/fb.svg}" alt="" width="35" height="35">
+                <img th:src="@{/images/yt.svg}" alt="" width="35" height="28">
+            </div>
+        </div>
+
+        <div class="row border-top pt-4" style="border-top: 2px solid rgba(218, 218, 218, 1);">
+
+            <!-- Cột 1 -->
+            <div class="col-md-4 mb-3" style="min-height: 460px;width: 605px;">
+                <h6 style="font-family: Roboto;font-weight: 600;font-size: 25px;color: rgba(103, 103, 103, 1)">CONTACT INFORMATION</h6>
+
+                <p class="mb-1 d-flex align-items-center gap-2" style="font-family: Roboto; font-weight: 600; font-size: 20px; color: rgba(103, 103, 103, 1);">
+                    <img th:src="@{/images/location.svg}" alt="" width="24" height="24">
+                    Hanoi headquarters
+                </p>
+
+                <p style="font-family: Roboto;font-weight: 600;font-size: 18px;color: rgba(41, 41, 41, 1)">7th Floor, Block A, Song Da Building, Pham Hung Street, My Dinh 1 Ward, Nam Tu Liem District, Hanoi</p>
+
+                <div class="d-flex align-items-center gap-2" style="font-size: 20px; color: rgba(103, 103, 103, 1);">
+                    <img th:src="@{/images/phone.svg}" alt="" width="24" height="24">
+                    Phone Number
+                </div>
+                <p style="font-size: 18px; color: rgba(41, 41, 41, 1); font-weight: 600;">0862 069 233</p>
+
+                <div class="d-flex align-items-center gap-2" style="font-size: 20px; color: rgba(103, 103, 103, 1);">
+                    <img th:src="@{/images/email.svg}" alt="" width="24" height="24">
+                    Email
+                </div>
+                <p style="font-size: 18px; color: rgba(41, 41, 41, 1); font-weight: 600;">academy@rikkeisoft.com</p>
+            </div>
+
+            <!-- Cột 2 -->
+            <div class="col-md-4 mb-3" style="min-height: 460px;width: 250px;">
+                <h6 style="color: rgba(103, 103, 103, 1);font-family: Roboto;font-weight: 600;font-size: 25px;vertical-align: middle">QUICK LINKS</h6>
+                <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">Overview</p>
+                <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">Intership position</p>
+                <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">Intership application</p>
+                <p style="font-family: Roboto;font-weight: 600;font-size: 20px;vertical-align: middle;color: rgba(41, 41, 41, 1);line-height: 100%">My tasks</p>
+            </div>
+
+            <!-- Cột 3 -->
+            <div class="col-md-4 mb-3" style="min-height: 460px;width: 465px">
+                <h6 style="color: rgba(103, 103, 103, 1);font-family: Roboto;font-weight: 600;font-size: 25px;vertical-align: middle">LIST OF BRANCHES</h6>
+                <div style="color: rgba(41, 41, 41, 1);font-size: 20px;font-weight: 600;font-family: Roboto;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">Branch 1</div>
+                <p  style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+                    <img th:src="@{/images/location.svg}" alt="" width="24" height="24">
+                    Address: <br>
+                <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0">7th Floor, Block A, Song Da Building, My Dinh 1 Ward, Hanoi</p>
+                </p>
+                <div style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+                    <img th:src="@{/images/phone.svg}" alt="" width="24" height="24">
+                    Phone: <br>
+                    <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-top: 10px">0862 069 233</p>
+                </div>
+                <div style="color: rgba(41, 41, 41, 1);font-size: 20px;font-weight: 600;font-family: Roboto;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">Branch 2</div>
+                <p  style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+                    <img th:src="@{/images/location.svg}" alt="" width="24" height="24">
+                    Address: <br>
+                <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0">3rd Floor, TSA Building, No. 77 Le Trung Nghia Street, Ward 12, Tan Binh District, Ho Chi Minh City</p>
+                </p>
+                <div style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-bottom: 10px">
+                    <img th:src="@{/images/phone.svg}" alt="" width="24" height="24">
+                    Phone: <br>
+                    <p style="color: rgba(41, 41, 41, 1);font-weight: 400;font-family: Roboto;font-size: 20px;line-height: 100%;vertical-align: middle;letter-spacing: 0;margin-top: 10px">0962 703 893</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleFilterModal() {
+        const modal = document.getElementById("filterModal");
+        if (modal.style.display === "block") {
+            modal.style.display = "none";
+        } else {
+            modal.style.display = "block";
+        }
+    }
+    function submitFilterForm() {
+        const form = document.getElementById("searchForm");
+
+        // Xóa ô keyword nếu chỉ muốn lọc
+        const keywordInput = form.querySelector('input[name="keyword"]');
+        if (keywordInput) {
+            keywordInput.value = "";
+        }
+
+        form.action = "/recruitment/filter";
+        form.submit();
+    }
+
+</script>
+</body>
+</html>

@@ -82,6 +82,15 @@ public class TechnologyRepositoryImpl implements TechnologyRepository {
     }
 
     @Override
+    public List<Technology> findByIds(List<Long> ids) {
+        try (Session session = getSession()) {
+            return session.createQuery("FROM Technology t WHERE t.id IN :ids AND t.is_deleted = false", Technology.class)
+                    .setParameterList("ids", ids)
+                    .getResultList();
+        }
+    }
+
+    @Override
     public void save(Technology technology) {
         Session session = getSession();
         session.beginTransaction();

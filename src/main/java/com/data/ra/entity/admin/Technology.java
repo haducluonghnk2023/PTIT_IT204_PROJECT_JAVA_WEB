@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.util.Set;
 
 @Entity
@@ -26,10 +25,10 @@ public class Technology {
 
     @Column(unique = true, nullable = false)
     private Boolean is_deleted = false;
-    @ManyToMany(mappedBy = "technologies")
+    @ManyToMany(mappedBy = "technologies",fetch =  FetchType.EAGER)
     private Set<Candidate> candidates;
 
-    @ManyToMany(mappedBy = "technologies")
+    @ManyToMany(mappedBy = "technologies",fetch = FetchType.EAGER)
     private Set<RecruitmentPosition> recruitmentPositions;
 
 }

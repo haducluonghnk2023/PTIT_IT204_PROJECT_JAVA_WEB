@@ -13,7 +13,7 @@
 /* Sidebar admin */
 .admin-sidebar {
     background-color: #f8f9fa;
-    padding: 20px;
+    padding: 15px;
     min-height: 100vh;
     border-right: 1px solid #dee2e6;
 }
@@ -62,7 +62,7 @@
 .company-logo-box {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 7px;
     padding: 10px 15px;
 }
 

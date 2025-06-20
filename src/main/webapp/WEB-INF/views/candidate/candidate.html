@@ -49,42 +49,43 @@
             <div class="filter-wrapper">
                 <!-- Search -->
                 <div class="search-wrapper">
-                    <input type="text" id="searchInput" name="name" placeholder="Search here ..."
-                           th:value="${param.name}" />
+                    <input type="text" id="searchInput" name="name" placeholder="Search name ..."
+                           th:value="${name}" />
                     <i class="bi bi-search search-icon"></i>
                 </div>
 
                 <!-- Experience -->
-                <select class="form-select" id="experienceFilter" name="experience" onchange="this.form.submit()">
+                <select class="form-select" id="experienceFilter" name="experience">
                     <option value="">Experience</option>
-                    <option value="1" th:selected="${param.experience == '1'}">0-1 years</option>
-                    <option value="3" th:selected="${param.experience == '3'}">2-3 years</option>
-                    <option value="5" th:selected="${param.experience == '5'}">4-5 years</option>
-                    <option value="6" th:selected="${param.experience == '6'}">6+ years</option>
+                    <option value="1" th:selected="${experience == 1}">0-1 years</option>
+                    <option value="3" th:selected="${experience == 3}">2-3 years</option>
+                    <option value="5" th:selected="${experience == 5}">4-5 years</option>
+                    <option value="6" th:selected="${experience == 6}">6+ years</option>
                 </select>
 
+
                 <!-- Age -->
-                <select class="form-select" id="ageFilter" name="age" onchange="this.form.submit()">
+                <select class="form-select" id="ageFilter" name="age">
                     <option value="">Age</option>
-                    <option value="20-25" th:selected="${param.age == '20-25'}">20-25</option>
-                    <option value="26-30" th:selected="${param.age == '26-30'}">26-30</option>
-                    <option value="31-35" th:selected="${param.age == '31-35'}">31-35</option>
-                    <option value="36-40" th:selected="${param.age == '36-40'}">36-40</option>
+                    <option value="20-25" th:selected="${age == '20-25'}">20-25</option>
+                    <option value="26-30" th:selected="${age == '26-30'}">26-30</option>
+                    <option value="31-35" th:selected="${age == '31-35'}">31-35</option>
+                    <option value="36-40" th:selected="${age == '36-40'}">36-40</option>
                 </select>
 
                 <!-- Gender -->
-                <select class="form-select" id="genderFilter" name="gender" onchange="this.form.submit()">
+                <select class="form-select" id="genderFilter" name="gender">
                     <option value="">Gender</option>
-                    <option value="Male" th:selected="${param.gender == 'Male'}">Male</option>
-                    <option value="Female" th:selected="${param.gender == 'Female'}">Female</option>
+                    <option value="Male" th:selected="${gender == 'Male'}">Male</option>
+                    <option value="Female" th:selected="${gender == 'Female'}">Female</option>
                 </select>
 
                 <!-- Technology -->
-                <select class="form-select" id="technologyFilter" name="technology" onchange="this.form.submit()">
+                <select class="form-select" id="technologyFilter" name="technology">
                     <option value="">Technology</option>
                     <option th:each="tech : ${technologies}"
                             th:value="${tech.name}"
-                            th:selected="${param.technology == tech.name}"
+                            th:selected="${technology == tech.name}"
                             th:text="${tech.name}">
                     </option>
                 </select>
@@ -93,11 +94,11 @@
 
         <!-- Rows per page -->
         <form method="get" th:action="@{/admin/candidate}" class="d-flex align-items-center gap-2 mt-1 mb-2">
-            <input type="hidden" name="name" th:value="${param.name}">
-            <input type="hidden" name="experience" th:value="${param.experience}">
-            <input type="hidden" name="age" th:value="${param.age}">
-            <input type="hidden" name="gender" th:value="${param.gender}">
-            <input type="hidden" name="technology" th:value="${param.technology}">
+            <input type="hidden" name="name" th:value="${name}">
+            <input type="hidden" name="experience" th:value="${experience}">
+            <input type="hidden" name="age" th:value="${age}">
+            <input type="hidden" name="gender" th:value="${gender}">
+            <input type="hidden" name="technology" th:value="${technology}">
 
             <label for="sizeSelect" class="text-muted mb-0">Rows per page:</label>
             <select id="sizeSelect" name="size" class="form-select"
@@ -128,10 +129,11 @@
                 </tr>
                 </thead>
                 <tbody>
-                    <tr class="a" th:each="candidate, iterStat : ${candidates}" th:if="${not #lists.isEmpty(candidates)}">
-                        <td th:text="${iterStat.index + 1}"></td>
+                <tr class="a" th:each="candidate, iterStat : ${candidates}">
+                    <td th:text="${iterStat.index + 1}"></td>
                         <td th:text="${candidate.name}"></td>
-                        <td th:text="${candidate.dob != null ? candidate.dob.format(T(java.time.format.DateTimeFormatter).ofPattern('dd/MM/yyyy')) : ''}"></td>
+                        <td th:text="${candidate.dob != null ? #dates.format(candidate.dob, 'dd/MM/yyyy') : ''}"></td>
+
                         <td th:text="${candidate.email}"></td>
 
                         <td class="btn-tech" style="position: relative;">
@@ -208,7 +210,6 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         <!-- Pagination -->
         <nav aria-label="Page navigation" th:if="${totalPages > 0}">
             <ul class="pagination justify-content-end gap-2">

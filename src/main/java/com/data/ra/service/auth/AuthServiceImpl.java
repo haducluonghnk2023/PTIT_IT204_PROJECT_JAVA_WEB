@@ -16,6 +16,9 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailService emailService;
+
     @Override
     public User findByEmail(String email) {
         return authRepository.findByEmail(email);
@@ -23,11 +26,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User login(String email, String password) {
-        User user = authRepository.findByEmail(email);
-        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return user;
-        }
-        return null;
+        return authRepository.login(email, password);
     }
 
     @Override
@@ -36,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void saveRememberToken(Long userId, String token) {
+    public void saveRememberToken(Integer userId, String token) {
         authRepository.updateRememberToken(userId, token);
     }
 
@@ -53,4 +52,36 @@ public class AuthServiceImpl implements AuthService {
     public boolean register(SignUpRequestDTO request) {
         return authRepository.register(request);
     }
+
+    @Override
+    public void save(User user) {
+        authRepository.save(user);
+    }
+
+    // ✅ Lưu reset token vào DB
+    @Override
+    public void saveResetToken(String email, String token) {
+        authRepository.saveResetToken(email, token);
+    }
+
+    // ✅ Gửi email có chứa link đặt lại mật khẩu
+    @Override
+    public void sendResetPasswordEmail(String email, String resetLink) {
+        emailService.sendResetPasswordEmail(email, resetLink);
+    }
+
+    @Override
+    public User findByResetToken(String token) {
+        User user = authRepository.findByResetToken(token);
+        if (user != null && user.getResetToken() != null) {
+            return user;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean resetPassword(String token, String password) {
+       return authRepository.resetPassword(token, password);
+    }
+
 }

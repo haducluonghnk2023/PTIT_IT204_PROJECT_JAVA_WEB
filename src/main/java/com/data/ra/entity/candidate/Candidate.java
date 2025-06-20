@@ -2,12 +2,14 @@ package com.data.ra.entity.candidate;
 
 import com.data.ra.entity.admin.Application;
 import com.data.ra.entity.admin.Technology;
+import com.data.ra.entity.auth.User;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.Set;
 
 @Entity
@@ -40,9 +42,13 @@ public class Candidate {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private LocalDate dob;
+    private Date dob;
 
-    @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL)
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL,fetch =  FetchType.EAGER)
     private Set<Application> applications;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -52,5 +58,6 @@ public class Candidate {
             inverseJoinColumns = @JoinColumn(name = "technologyId")
     )
     private Set<Technology> technologies;
+
 
 }

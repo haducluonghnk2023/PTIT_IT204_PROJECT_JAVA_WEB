@@ -4,17 +4,323 @@
       layout:decorate="~{layouts/admin-layout}">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Recruitment Position</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/recruiment-position.css}">
 
 </head>
 <body>
 <!-- Content -->
 <div layout:fragment="content">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold">Recruitment position</h4>
+    <div class="container-fluid">
+    <!-- Header -->
+        <div class="recruitment-header">
+            <img th:src="@{/images/recruitment.svg}" alt="Technology" width="25" height="25" style="margin-top: 5px">
+            <h1 class="recruitment-title">Recruitment position</h1>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-section">
+            <button id="openModalBtn" class="add-btn" onclick="openModalForAdd()">Add Recruitment position</button>
+
+            <div class="search-container">
+                <form th:action="@{/admin/recruitment-position}" method="get">
+                    <input type="text"
+                           name="search"
+                           th:value="${search}"
+                    class="search-input"
+                    placeholder="Search here..." />
+
+                    <button type="submit" class="search-btn">
+                        <img th:src="@{/images/sea.svg}" alt="search" width="25" height="25">
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <p>Chào mừng bạn đến trang quản lý vị trí tuyển dụng!</p>
+    <!-- Hiển thị thông báo lỗi -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+            <tr>
+                <th>STT</th>
+                <th>Name</th>
+                <th>Min Salary</th>
+                <th>Max Salary</th>
+                <th>Min Experience</th>
+                <th>Technology</th>
+                <th>Created Date</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr class="a" th:each="recruitment, iterStat : ${positions}">
+                    <td th:text="${iterStat.index + 1}"></td>
+                    <td th:text="${recruitment.name}"></td>
+                    <td th:text="${recruitment.minSalary + '$'} "></td>
+                    <td th:text="${recruitment.maxSalary + '$'}"></td>
+                    <td th:text="${recruitment.minExperience}"></td>
+                    <td class="btn-tech" style="position: relative;">
+                        <span class="item" th:if="${recruitment.firstTechnology != null}"
+                              th:text="${recruitment.firstTechnology}"></span>
+
+                        <!-- Công nghệ thứ hai (nếu có ít nhất 2 công nghệ) -->
+                        <span class="item"
+                              th:if="${#lists.size(recruitment.remainingTechnologies) >= 1}"
+                              th:text="${recruitment.remainingTechnologies.get(0)}"></span>
+
+                        <!-- Nếu còn nhiều hơn 2 thì mới hiển thị +n -->
+                        <span class="item more-item" style="cursor: pointer; position: relative;"
+                              th:if="${#lists.size(recruitment.remainingTechnologies) > 1}">
+                                    <span th:text="'+' + (${#lists.size(recruitment.remainingTechnologies)} - 1)"></span>
+
+                            <!-- Tooltip hiển thị khi hover -->
+                                    <div class="tech-hover-box"
+                                         style="display: none; position: absolute; top: 100%; left: 0; background: #fff; border: 1px solid #ccc; padding: 6px 10px; z-index: 10; border-radius: 6px; white-space: nowrap;">
+                                        <span class="item"
+                                              th:each="techName, iterStat : ${recruitment.remainingTechnologies}"
+                                              th:if="${iterStat.index > 0 and techName != null and !#strings.isEmpty(techName)}"
+                                              th:text="${techName}">
+                                        </span>
+                                    </div>
+                            </span>
+                    </td>
+
+                    <td th:text="${recruitment.createdDateStr}"></td>
+
+                    <td>
+                        <!-- Nút sửa -->
+                        <a th:href="@{/admin/recruitment-position/edit/{id}(id=${recruitment.id})}" class="action-btn">
+                            <img th:src="@{/images/actionedit.svg}" alt="edit">
+                        </a>
+
+                        <!-- Nút xóa -->
+                        <a href="#" class="action-btn"
+                           onclick="openDeleteModal(this)"
+                           th:attr="data-delete-url=@{/admin/recruitment-position/delete/{id}(id=${recruitment.id})}">
+                            <img th:src="@{/images/deled.svg}" alt="delete">
+                        </a>
+                    </td>
+
+                </tr>
+
+                    <!-- Hiển thị nếu không có dữ liệu -->
+                <tr th:if="${#lists.isEmpty(positions)}">
+                    <td colspan="10" class="text-center text-danger fw-bold py-4">
+                        <i class="bi bi-exclamation-circle me-2"></i>Không tìm thấy kết quả phù hợp.
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" th:if="${totalPages >0}">
+        <ul class="pagination justify-content-end gap-2">
+
+            <!-- Nút Trái -->
+            <li class="page-item" th:classappend="${page == 0} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/admin/recruitment-position(size=${size}, page=${page - 1})}"
+                   aria-label="Previous">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+
+            <!-- Số trang -->
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${i == page} ? 'active'">
+                <a class="page-link"
+                   th:href="@{/admin/recruitment-position(size=${size}, page=${i})}"
+                   th:text="${i + 1}"></a>
+            </li>
+
+            <!-- Nút Phải -->
+            <li class="page-item" th:classappend="${page == totalPages - 1} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/admin/recruitment-position(size=${size}, page=${page + 1})}"
+                   aria-label="Next">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+
+    <div id="deleteConfirmModal" class="modal fade" tabindex="-1" aria-hidden="true" style="padding-top: 100px;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 10px; padding: 24px;">
+                <div class="modal-body  align-items-start p-0">
+                    <img th:src="@{/images/delete.svg}" alt="Technology" width="60" height="62" style="margin-bottom: 10px">
+                    <div style="flex: 1;">
+                        <h5 style="font-family: Inter;font-weight: 500;font-size: 18px;color: rgba(16, 24, 40, 1)">Xác nhận</h5>
+                        <p style="color: rgba(102, 112, 133, 1);font-family: Inter;font-weight: 400;font-size: 14px">Bạn có chắc chắn muốn xóa công nghệ này khỏi hệ thống không?</p>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button"
+                                    style="background-color: rgba(255, 255, 255, 1);
+                                           color: rgba(71, 85, 105, 1);
+                                           border-radius: 8px;
+                                           border: 1px solid rgba(208, 213, 221, 1);
+                                           width: 60px;
+                                           height: 44px;
+                                           display: flex;
+                                           align-items: center;
+                                           justify-content: center;"
+                                    onclick="closeDeleteModal()">Hủy</button>
+
+                            <a id="confirmDeleteBtn" href="#"
+                               style="color: rgba(255, 255, 255, 1);
+                                  background-color: rgba(217, 45, 32, 1);
+                                  border-radius: 8px;
+                                  border: 1px solid rgba(217, 45, 32, 1);
+                                  width: 60px;
+                                  height: 44px;
+                                  text-decoration: none;
+                                  display: flex;
+                                  align-items: center;
+                                  justify-content: center;"
+                                >Xóa
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="positionModal" class="modal-overlay" th:classappend="${position != null} ? ' show' : ''">
+        <div class="modal-content">
+            <div class="modal-header">
+            <span id="modalTitle" class="modal-title"
+                  th:text="${position != null} ? 'Edit Recruitment Position' : 'Add Recruitment Position'">
+                Add Recruitment Position
+            </span>
+                <span class="close-btn" onclick="closeModals()">&times;</span>
+            </div>
+
+            <form id="positionForm" method="post" th:action="@{/admin/recruitment-position/save}">
+                <!-- Hidden ID -->
+                <input type="hidden" id="positionId" name="id" th:value="${position != null} ? ${position.id} : ''"/>
+
+                <!-- Name -->
+                <div class="form-group">
+                    <label>Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" id="nameInput"
+                           th:value="${position != null} ? ${position.name} : ''"
+                           required style="width: 100%;"/>
+                </div>
+
+                <!-- Min Salary -->
+                <div class="form-group">
+                    <label>Min Salary <span class="text-danger">*</span></label>
+                    <input type="number" name="minSalary" id="minSalaryInput"
+                           th:value="${position != null} ? ${position.minSalary} : ''"
+                           required style="width: 100%;"/>
+                </div>
+
+                <!-- Max Salary -->
+                <div class="form-group">
+                    <label>Max Salary <span class="text-danger">*</span></label>
+                    <input type="number" name="maxSalary" id="maxSalaryInput"
+                           th:value="${position != null} ? ${position.maxSalary} : ''"
+                           required style="width: 100%;"/>
+                </div>
+
+                <!-- Min Experience -->
+                <div class="form-group">
+                    <label>Min Experience <span class="text-danger">*</span></label>
+                    <input type="number" name="minExperience" id="minExperienceInput"
+                           th:value="${position != null} ? ${position.minExperience} : ''"
+                           required style="width: 100%;"/>
+                </div>
+
+                <!-- Technology -->
+                <select name="technologyIds" id="techSelect" multiple required style="width: 100%;">
+                    <option th:each="tech : ${technologies}"
+                            th:value="${tech.id}"
+                            th:text="${tech.name}"
+                            th:selected="${position != null and position.technologyIds != null and position.technologyIds.contains(tech.id)}">
+                    </option>
+                </select>
+
+                <!-- Created Date -->
+                <div class="form-group">
+                    <label>Created Date <span class="text-danger">*</span></label>
+                    <input type="date" name="createdDate" id="createdDateInput"
+                           th:value="${position != null} ? ${position.createdDate} : ''"
+                           required style="width: 100%;"/>
+                </div>
+
+                <!-- Expired Date -->
+                <div class="form-group">
+                    <label>Expired Date <span class="text-danger">*</span></label>
+                    <input type="date" name="expiredDate" id="expiredDateInput"
+                           th:value="${position != null} ? ${position.expiredDate} : ''"
+                           required style="width: 100%;"/>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" id="descriptionInput" rows="4" style="width: 100%;"
+                              th:text="${position != null} ? ${position.description} : ''"></textarea>
+                </div>
+
+                <!-- Requirement -->
+                <div class="form-group">
+                    <label>Requirement</label>
+                    <textarea name="requirements" id="requirementInput" rows="4" style="width: 100%;"
+                              th:text="${position != null} ? ${position.requirements} : ''"></textarea>
+                </div>
+
+                <!-- Location -->
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" name="location" id="locationInput"
+                           th:value="${position != null} ? ${position.location} : ''"
+                           style="width: 100%;"/>
+                </div>
+
+                <!-- Education -->
+                <div class="form-group">
+                    <label>Education</label>
+                    <input type="text" name="education" id="educationInput"
+                           th:value="${position != null} ? ${position.education} : ''"
+                           style="width: 100%;"/>
+                </div>
+
+                <!-- Type -->
+                <select name="type" id="typeSelect" style="width: 100%;">
+                    <option value="FullTime"
+                            th:selected="${position != null} and ${position.type} == 'FullTime'">Full Time</option>
+                    <option value="PartTime"
+                            th:selected="${position != null} and ${position.type} == 'PartTime'">Part Time</option>
+                </select>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline-secondary" onclick="closeModals()">Cancel</button>
+                    <button type="submit" class="btn btn-danger" id="saveBtn"
+                            th:text="${position != null} ? 'Update' : 'Save'">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 </body>
 </html>

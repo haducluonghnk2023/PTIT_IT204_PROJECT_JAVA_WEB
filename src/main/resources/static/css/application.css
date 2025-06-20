@@ -1,0 +1,61 @@
+
+* {
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    margin: 0;
+    background-color: #f4f6f8;
+}
+
+.application-container {
+    padding: 8px;
+}
+
+.application-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(225, 225, 225, 1);
+}
+.application-header::before {
+    content: "";
+    position: absolute;
+    left: -2.3%;
+    top: 0;
+    width: 104%;
+    height: 1px;
+    background-color: rgba(225, 225, 225, 1);
+}
+
+.application-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #212529;
+}
+
+.table th {
+    padding: 12px 24px 12px 24px !important;
+    font-weight: 500;
+    font-family: Inter;
+    font-size: 14px;
+    color: rgba(102, 112, 133, 1) !important;
+    border-bottom: 1px solid rgba(234, 236, 240, 1);
+    background-color: rgba(249, 250, 251, 1) !important;
+}
+.table td {
+    padding: 12px 24px 12px 24px !important;
+    color: rgba(16, 24, 40, 1) !important;
+    border-bottom: 1px solid rgba(234, 236, 240, 1);
+    font-weight: 500;
+    font-family: Inter;
+    font-size: 14px;
+    text-align: center;         /* căn giữa ngang */
+    vertical-align: middle;
+}
+
