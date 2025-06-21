@@ -34,6 +34,13 @@ public class AuthRepositoryImpl implements AuthRepository {
     }
 
     @Override
+    public User findById(Integer id) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.get(User.class, id);
+        }
+    }
+
+    @Override
     public User login(String email, String rawPassword) {
         try (Session session = sessionFactory.openSession()) {
             User user = session.createQuery("FROM User WHERE email = :email", User.class)
@@ -109,26 +116,36 @@ public class AuthRepositoryImpl implements AuthRepository {
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
 
-            // Check nếu email đã tồn tại
+            // 1. Check email đã tồn tại chưa
             User existingUser = findByEmail(request.getEmail());
             if (existingUser != null) {
-                return false; // Email đã tồn tại
+                return false;
             }
 
-            // Tạo user mới
+            // 2. Tạo User mới
             User newUser = new User();
             newUser.setUsername(request.getUsername());
             newUser.setEmail(request.getEmail());
 
-            // Mã hóa mật khẩu bằng BCrypt
+            // Mã hóa mật khẩu
             String encodedPassword = passwordEncoder.encode(request.getPassword());
             newUser.setPassword(encodedPassword);
-
             newUser.setRole(request.getRole() != null ? request.getRole() : "candidate");
             newUser.setRememberToken(null);
 
-            // Lưu vào DB
+            // 3. Lưu User
             session.save(newUser);
+
+            // 4. Tạo Candidate tương ứng
+            Candidate candidate = new Candidate();
+            candidate.setUser(newUser);
+            candidate.setName(newUser.getUsername());
+            candidate.setEmail(newUser.getEmail());
+            candidate.setStatus("active");
+
+            // 5. Lưu Candidate
+            session.save(candidate);
+
             transaction.commit();
             return true;
         } catch (Exception e) {
@@ -136,6 +153,7 @@ public class AuthRepositoryImpl implements AuthRepository {
             throw e;
         }
     }
+
 
     @Override
     public void save(User user) {

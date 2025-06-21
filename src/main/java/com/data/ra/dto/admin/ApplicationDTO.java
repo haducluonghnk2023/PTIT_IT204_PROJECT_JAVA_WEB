@@ -3,6 +3,7 @@ package com.data.ra.dto.admin;
 import com.data.ra.entity.admin.Application;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,6 +15,8 @@ public class ApplicationDTO {
     private String candidateName;
     private String recruitmentName;
     private String cvUrl;
+    private MultipartFile cvFile;
+
     private String progress;
     private String createAt;
     private String updateAt;
@@ -23,6 +26,7 @@ public class ApplicationDTO {
     private String interviewResultNote;
 
     private static final SimpleDateFormat displayFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+
     public ApplicationDTO(Application app) {
         this.id = app.getId();
         this.cvUrl = app.getCvUrl();
@@ -35,7 +39,6 @@ public class ApplicationDTO {
         this.updateAt = formatDisplayDate(app.getUpdateAt());
 
         this.interviewTime = app.getInterviewTime();
-
         this.interviewLink = app.getInterviewLink();
         this.interviewResult = app.getInterviewResult() != null ? app.getInterviewResult() : "";
         this.interviewResultNote = app.getInterviewResultNote() != null ? app.getInterviewResultNote() : "";

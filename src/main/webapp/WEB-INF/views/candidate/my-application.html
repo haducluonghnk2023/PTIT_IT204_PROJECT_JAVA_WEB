@@ -271,27 +271,30 @@
 <div th:if="${error}" class="alert alert-danger" role="alert">
     <span th:text="${error}"></span>
 </div>
-<!-- body-->
-<div class="container mt-4">
+<!-- body -->
+<div class="container mt-4 d-flex flex-column" style="min-height: 70vh;">
+    <!-- Tiêu đề -->
     <h2 class="text-center"
         style="font-family: Roboto;
-           font-weight: 700;
-           font-size: 30px;
-           line-height: 100%;
-           background-color: rgba(234, 234, 234, 1);
-           border-top-left-radius: 6px;
-           border-top-right-radius: 8px;
-           height: 40px;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           margin-bottom: 0;">
+               font-weight: 700;
+               font-size: 30px;
+               line-height: 100%;
+               background-color: rgba(234, 234, 234, 1);
+               border-top-left-radius: 6px;
+               border-top-right-radius: 8px;
+               height: 40px;
+               display: flex;
+               align-items: center;
+               justify-content: center;
+               margin-bottom: 0;">
         <span style="color: black;">My </span>
         <span style="color: rgba(171, 31, 36, 0.95);">Application</span>
     </h2>
 
-    <table class="table table-bordered text-center align-middle">
-        <thead class="table-light">
+    <!-- Bọc table trong div để tự căn chiều cao -->
+    <div class="flex-grow-1 d-flex flex-column justify-content-start">
+        <table class="table table-bordered text-center align-middle mb-0">
+            <thead class="table-light">
             <tr>
                 <th>STT</th>
                 <th>Recruitment Name</th>
@@ -301,64 +304,59 @@
                 <th>Process</th>
                 <th>Actions</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
+            <!-- Khi có dữ liệu -->
             <tr th:each="app, iterStat : ${applications}">
-                <!-- STT -->
                 <td class="px-4 py-3" th:text="${iterStat.index + 1}">1</td>
-
-                <!-- Recruitment name (click để mở modal approve) -->
                 <td style="text-decoration: underline; cursor: pointer;"
                     th:text="${app.recruitmentPosition.name}"
                     th:attr="data-app-id=${app.id},
-                     data-created-at=${#dates.format(app.createAt, 'dd/MM/yyyy')},
-                     data-updated-at=${#dates.format(app.updateAt, 'dd/MM/yyyy')},
-                     data-interview-time=${#dates.format(app.interviewTime, 'dd/MM/yyyy HH:mm:ss')},
-                     data-interview-link=${app.interviewLink}"
+                                 data-created-at=${#dates.format(app.createAt, 'dd/MM/yyyy')},
+                                 data-updated-at=${#dates.format(app.updateAt, 'dd/MM/yyyy')},
+                                 data-interview-time=${#dates.format(app.interviewTime, 'dd/MM/yyyy HH:mm:ss')},
+                                 data-interview-link=${app.interviewLink}"
                     onclick="openInterviewApprove(this)">
                 </td>
-
-                <!-- Technologies -->
                 <td class="tech-cell px-4 py-3">
-                    <span class="tech-tag"
-                          th:each="tech : ${app.recruitmentPosition.technologies}"
-                          th:text="${tech.name}">
-                        Front End
-                    </span>
+                        <span class="tech-tag"
+                              th:each="tech : ${app.recruitmentPosition.technologies}"
+                              th:text="${tech.name}">
+                            Front End
+                        </span>
                 </td>
-
-                <!-- Created At -->
                 <td class="px-4 py-3" th:text="${#dates.format(app.createAt, 'dd/MM/yyyy')}">10/10/2022</td>
-
-                <!-- Updated At -->
                 <td class="px-4 py-3" th:text="${#dates.format(app.updateAt, 'dd/MM/yyyy')}">10/11/2022</td>
-
-                <!-- Status -->
                 <td class="status-cell px-4 py-3">
-                    <span class="badge"
-                          th:classappend="${app.progress.name() == 'pending'} ? ' btn-pending' :
-                                          (${app.progress.name() == 'handling'} ? ' btn-handling' :
-                                          (${app.progress.name() == 'interviewing'} ? ' btn-interviewing' : ' btn-done'))"
-                          th:text="${app.progress.name().toUpperCase()}">
-                        PENDING
-                    </span>
+                        <span class="badge"
+                              th:classappend="${app.progress.name() == 'pending'} ? ' btn-pending' :
+                                              (${app.progress.name() == 'handling'} ? ' btn-handling' :
+                                              (${app.progress.name() == 'interviewing'} ? ' btn-interviewing' : ' btn-done'))"
+                              th:text="${app.progress.name().toUpperCase()}">
+                            PENDING
+                        </span>
                 </td>
-
-                <!--  icon -->
                 <td class="px-4 py-3">
                     <img th:src="@{/images/deleteicon.svg}" alt="Delete" width="30" height="30" style="cursor: pointer;">
                     <img th:if="${app.progress.name() == 'interviewing'}"
                          th:src="@{/images/views.svg}"
                          alt="View"
-                         width="30"
-                         height="30"
+                         width="30" height="30"
                          style="cursor: pointer;">
                 </td>
             </tr>
 
-        </tbody>
-    </table>
+            <!-- Khi danh sách trống -->
+            <tr th:if="${#lists.isEmpty(applications)}">
+                <td colspan="7" class="text-center py-5 text-muted" style="font-style: italic;">
+                    Bạn chưa có đơn ứng tuyển nào.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
+
 <!-- Pagination -->
 <div class="container">
     <nav aria-label="Page navigation" th:if="${totalPages >0}">
@@ -527,8 +525,6 @@
             bsModal.show();
         }
     }
-
-
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

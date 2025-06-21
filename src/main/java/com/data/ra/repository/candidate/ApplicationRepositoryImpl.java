@@ -92,32 +92,60 @@ public class ApplicationRepositoryImpl implements  ApplicationRepository {
     }
 
     @Override
-    public void save(Integer candidateId, Long recruitmentId, String cvUrl) {
+    public void save(Application application) {
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();
 
-            Candidate candidate = session.get(Candidate.class, candidateId);
-            RecruitmentPosition recruitment = session.get(RecruitmentPosition.class, recruitmentId);
-
-            if (candidate == null || recruitment == null) {
-                throw new IllegalArgumentException("Candidate hoặc RecruitmentPosition không tồn tại.");
+            // Nếu là mới thì set ngày tạo
+            if (application.getId() == null) {
+                application.setCreateAt(new Date());
             }
 
+            // Luôn cập nhật thời gian cập nhật
+            application.setUpdateAt(new Date());
+
+            // Lưu hoặc cập nhật
+            session.saveOrUpdate(application);
+
+            // Commit giao dịch
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            session.getTransaction().rollback();
+            throw e; // ném lại exception để controller xử lý nếu cần
+        } finally {
+            session.close(); // đóng session trong mọi trường hợp
+        }
+    }
+
+    @Override
+    public void saveApp(Integer candidateId, Long recruitmentId, String cvUrl) {
+        Session session = sessionFactory.openSession();
+        try {
+            session.beginTransaction();
+
+            // Tạo mới ứng tuyển
             Application application = new Application();
-            application.setCandidate(candidate);
-            application.setRecruitmentPosition(recruitment);
+            application.setCandidate(session.get(Candidate.class, candidateId));
+            application.setRecruitmentPosition(session.get(RecruitmentPosition.class, recruitmentId));
             application.setCvUrl(cvUrl);
-            application.setProgress(Progress.pending); // mặc định
+            application.setProgress(Progress.pending);
             application.setCreateAt(new Date());
             application.setUpdateAt(new Date());
 
+            // Lưu ứng tuyển
             session.save(application);
+
+            // Commit giao dịch
             session.getTransaction().commit();
+        } catch (Exception e) {
+            session.getTransaction().rollback();
+            throw e; // ném lại exception để controller xử lý nếu cần
         } finally {
-            session.close();
+            session.close(); // đóng session trong mọi trường hợp
         }
     }
+
 
     @Override
     public boolean existsByCandidateIdAndRecruitmentId(Integer candidateId, Long recruitmentId) {

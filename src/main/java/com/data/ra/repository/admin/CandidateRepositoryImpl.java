@@ -114,6 +114,19 @@ public class CandidateRepositoryImpl implements CandidateRepository {
     }
 
     @Override
+    public Candidate findByPhone(String phone) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM Candidate c WHERE c.phone = :phone";
+            Query<Candidate> query = session.createQuery(hql, Candidate.class);
+            query.setParameter("phone", phone);
+
+            List<Candidate> results = query.setMaxResults(1).list();
+            return results.isEmpty() ? null : results.get(0);
+        }
+    }
+
+
+    @Override
     public int countFilteredCandidates(String name, Integer experience, int minAge, int maxAge, String gender, String technology) {
         try (Session session = sessionFactory.openSession()) {
             StringBuilder hql = new StringBuilder("SELECT COUNT(DISTINCT c) FROM Candidate c LEFT JOIN c.technologies t WHERE 1=1");

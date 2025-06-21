@@ -2,6 +2,7 @@ package com.data.ra.controller.admin;
 
 import com.data.ra.dto.admin.ApplicationDTO;
 import com.data.ra.entity.admin.Application;
+import com.data.ra.entity.admin.Progress;
 import com.data.ra.service.candidate.ApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,6 +11,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,7 +31,7 @@ public class ApplicationController {
                                   @RequestParam(value = "keyword", required = false) String keyword,
                                   @RequestParam(value = "process", required = false) String progress,
                                   @RequestParam(value = "page", defaultValue = "1") int page,
-                                  @RequestParam(value = "size", defaultValue = "5") int size) {
+                                  @RequestParam(value = "size", defaultValue = "10") int size) {
 
         List<ApplicationDTO> dtos = applicationService.findAll().stream()
                 .filter(app -> {
@@ -56,33 +62,58 @@ public class ApplicationController {
         return "admin/application";
     }
 
+    @GetMapping("/candidate/view-cv/{id}")
+    public String viewCVModalContent(@PathVariable("id") Integer appId, Model model) {
+        Application application = applicationService.findById(appId);
 
-
-    @PostMapping("/candidate/mark-handling")
-    public String markHandling(@RequestParam("id") Integer id,
-                               RedirectAttributes redirectAttributes) {
-        try {
-            Application app = applicationService.findById(id);
-            if (app == null) {
-                redirectAttributes.addFlashAttribute("error", "Không tìm thấy ứng viên.");
-                return "redirect:/admin/application";
-            }
-
-            // Kiểm tra trạng thái phải là PENDING
-            if (!"PENDING".equalsIgnoreCase(app.getProgress().name())) {
-                redirectAttributes.addFlashAttribute("error", "Chỉ có thể cập nhật khi trạng thái là PENDING.");
-                return "redirect:/admin/application";
-            }
-
-            applicationService.markHandling(id);
-            redirectAttributes.addFlashAttribute("success", "Cập nhật trạng thái thành công!");
-        } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi khi cập nhật trạng thái.");
+        if (application == null) {
+            model.addAttribute("error", "Không tìm thấy thông tin ứng tuyển.");
+            return "fragments/cv-error :: content";
         }
-        return "redirect:/admin/application";
+
+        String cvUrl = application.getCvUrl();
+        if (cvUrl == null || cvUrl.trim().isEmpty()) {
+            model.addAttribute("error", "CV không tồn tại.");
+            return "fragments/cv-error :: content";
+        }
+
+        boolean loadSuccess = false;
+        String viewName;
+
+        // ✅ Nếu có chứa "pdf" trong URL thì xem là PDF (Cloudinary lưu đúng loại nhưng không có đuôi)
+        if (cvUrl.toLowerCase().contains(".pdf")) {
+            model.addAttribute("cvUrl", cvUrl);
+            loadSuccess = true;
+            viewName = "fragments/cv-pdf :: content";
+        } else {
+            // ✅ Mặc định còn lại là TXT
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new URL(cvUrl).openStream(), StandardCharsets.UTF_8))) {
+
+                String content = reader.lines()
+                        .map(line -> line.replaceAll("^(\\s*[IVXLCDM]+\\.\\s.*)$", "<strong>$1</strong>"))
+                        .collect(Collectors.joining("<br>"));
+
+                model.addAttribute("cvText", content);
+                loadSuccess = true;
+                viewName = "fragments/cv-text :: content";
+            } catch (IOException e) {
+                model.addAttribute("error", "Không thể tải nội dung CV.");
+                return "fragments/cv-error :: content";
+            }
+        }
+
+        // ✅ Cập nhật trạng thái nếu load thành công
+        if (loadSuccess && application.getProgress() == Progress.pending) {
+            application.setProgress(Progress.handling);
+            application.setUpdateAt(new Date());
+            applicationService.save(application);
+        }
+
+        return viewName;
     }
+
+
 
     @PostMapping("/schedule-interview")
     public String scheduleInterview(@RequestParam("applicationId") Integer id,

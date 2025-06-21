@@ -18,6 +18,10 @@ public interface CandidateService {
 
     int countFilteredCandidates(String name, Integer experience, int minAge, int maxAge,
                                 String gender, String technology);
+
     Candidate findByUserId(Integer userId);
+
     void save(Candidate candidate);
+
+    Candidate findByPhone(String phone);
 }

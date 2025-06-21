@@ -75,74 +75,115 @@ public class InformationController {
             @RequestParam(value = "technologyIds", required = false) String technologyIds,
             @RequestParam(value = "dobString", required = false) String dobString,
             HttpSession session,
-            RedirectAttributes redirectAttributes) {
+            Model model) {
 
-        try {
-            User currentUser = (User) session.getAttribute("currentCandidate");
-
-            if (currentUser == null) {
-                return "redirect:/auth/login";
-            }
-
-            // Lấy candidate hiện tại từ DB
-            Candidate candidate = candidateService.findByUserId(currentUser.getId());
-
-            if (candidate == null) {
-                // Tạo mới candidate
-                candidate = new Candidate();
-                candidate.setUser(currentUser);
-                candidate.setStatus("Active"); // Set default status
-            }
-
-            // Update thông tin candidate
-            candidate.setName(name);
-            candidate.setEmail(email);
-            candidate.setPhone(phone);
-            candidate.setExperience(experience);
-            candidate.setGender(gender);
-            candidate.setDescription(description);
-
-            // Xử lý Date of Birth
-            if (dobString != null && !dobString.trim().isEmpty()) {
-                try {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    Date dob = dateFormat.parse(dobString);
-                    candidate.setDob(dob);
-                } catch (ParseException e) {
-                    redirectAttributes.addFlashAttribute("error", "Invalid date format");
-                    return "redirect:/candidate/information";
-                }
-            }
-
-            // Xử lý Technologies
-            Set<Technology> technologies = new HashSet<>();
-            if (technologyIds != null && !technologyIds.trim().isEmpty()) {
-                String[] techIdArray = technologyIds.split(",");
-                for (String techIdStr : techIdArray) {
-                    try {
-                        Long techId = Long.parseLong(techIdStr.trim());
-                        Technology tech = technologyService.findById(techId);
-                        if (tech != null) {
-                            technologies.add(tech);
-                        }
-                    } catch (NumberFormatException e) {
-                    }
-                }
-            }
-            candidate.setTechnologies(technologies);
-
-            // Lưu candidate
-            candidateService.save(candidate);
-
-            redirectAttributes.addFlashAttribute("success", "Information updated successfully!");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Failed to update information: " + e.getMessage());
+        User currentUser = (User) session.getAttribute("currentCandidate");
+        if (currentUser == null) {
+            return "redirect:/auth/login";
         }
 
+        User existingUser = authService.findById(currentUser.getId());
+        if (existingUser == null) {
+            model.addAttribute("error", "Tài khoản không tồn tại.");
+            return "candidate/information";
+        }
+
+        Candidate candidate = candidateService.findByUserId(currentUser.getId());
+        boolean isNewCandidate = false;
+        if (candidate == null) {
+            candidate = new Candidate();
+            candidate.setUser(currentUser);
+            candidate.setStatus("Active");
+            isNewCandidate = true;
+        }
+
+        // ✅ Validate định dạng email
+        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            model.addAttribute("emailError", "Email không hợp lệ.");
+            prepareFormModel(model, candidate, technologyIds);
+            return "candidate/information";
+        }
+
+        // ✅ Validate định dạng số điện thoại Việt Nam (nếu có)
+        if (phone != null && !phone.trim().isEmpty()) {
+            String vnPhoneRegex = "^(0|\\+84)(3[2-9]|5[6|8|9]|7[06-9]|8[1-9]|9[0-9])\\d{7}$";
+            if (!phone.matches(vnPhoneRegex)) {
+                model.addAttribute("phoneError", "Số điện thoại không hợp lệ (bắt đầu bằng 0 hoặc +84)");
+                prepareFormModel(model, candidate, technologyIds);
+                return "candidate/information";
+            }
+        }
+
+        // ✅ Check email trùng
+        User emailCheck = authService.findByEmail(email);
+        if (emailCheck != null && !emailCheck.getId().equals(existingUser.getId())) {
+            model.addAttribute("emailError", "Email đã được sử dụng bởi tài khoản khác.");
+            prepareFormModel(model, candidate, technologyIds);
+            return "candidate/information";
+        }
+
+        // ✅ Check phone trùng
+        if (phone != null && !phone.trim().isEmpty()) {
+            Candidate phoneCheck = candidateService.findByPhone(phone);
+            if (phoneCheck != null && (candidate.getId() == null || !candidate.getId().equals(phoneCheck.getId()))) {
+                model.addAttribute("phoneError", "Số điện thoại đã được sử dụng.");
+                prepareFormModel(model, candidate, technologyIds);
+                return "candidate/information";
+            }
+        }
+
+        // ✅ Set dữ liệu
+        candidate.setName(name);
+        candidate.setEmail(email);
+        candidate.setPhone(phone);
+        candidate.setExperience(experience);
+        candidate.setGender(gender);
+        candidate.setDescription(description);
+
+        // ✅ Parse ngày sinh
+        if (dobString != null && !dobString.trim().isEmpty()) {
+            try {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                Date dob = dateFormat.parse(dobString);
+
+                Date now = new Date();
+                if (dob.after(now)) {
+                    model.addAttribute("dobError", "Ngày sinh không được lớn hơn ngày hiện tại.");
+                    prepareFormModel(model, candidate, technologyIds);
+                    return "candidate/information";
+                }
+
+                candidate.setDob(dob);
+            } catch (ParseException e) {
+                model.addAttribute("dobError", "Sai định dạng ngày sinh.");
+                prepareFormModel(model, candidate, technologyIds);
+                return "candidate/information";
+            }
+        }
+
+        // ✅ Xử lý công nghệ
+        Set<Technology> technologies = new HashSet<>();
+        if (technologyIds != null && !technologyIds.trim().isEmpty()) {
+            String[] techIdArray = technologyIds.split(",");
+            for (String techIdStr : techIdArray) {
+                try {
+                    Long techId = Long.parseLong(techIdStr.trim());
+                    Technology tech = technologyService.findById(techId);
+                    if (tech != null) {
+                        technologies.add(tech);
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        candidate.setTechnologies(technologies);
+
+        candidateService.save(candidate);
+
+        model.addAttribute("success", isNewCandidate ? "Tạo hồ sơ thành công!" : "Cập nhật thành công!");
         return "redirect:/candidate/information";
     }
+
+
 
     @PostMapping("/change-password")
     public String changePassword(
@@ -178,5 +219,23 @@ public class InformationController {
         redirectAttributes.addFlashAttribute("successPassword", "Password changed successfully.");
         return "redirect:/candidate/information";
     }
+
+    private void prepareFormModel(Model model, Candidate candidate, String technologyIds) {
+        model.addAttribute("candidate", candidate);
+        model.addAttribute("allTechnologies", technologyService.findAlls());
+
+        List<Long> selectedIds = new ArrayList<>();
+        if (technologyIds != null) {
+            selectedIds = Arrays.stream(technologyIds.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Long::valueOf)
+                    .collect(Collectors.toList());
+        }
+
+        model.addAttribute("technologyIds", selectedIds);
+    }
+
+
 
 }

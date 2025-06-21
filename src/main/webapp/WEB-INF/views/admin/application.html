@@ -148,7 +148,7 @@
                     <td th:text="${i.index + 1}"></td>
                     <td style="text-decoration: underline; cursor: pointer;"
                         th:text="${a.candidateName}"
-                        th:attr="data-app-id=''+${a.id}"
+                        th:attr="data-app-id=${a.id}"
                         onclick="openCV(this)">
                     </td>
 
@@ -163,7 +163,7 @@
                     <td th:text="${a.createAt}"></td>
                     <td th:text="${a.updateAt}"></td>
                     <td class="text-center align-middle">
-                        <span class="badge d-inline-block"
+                        <span class="badge d-inline-block status-cell"
                               th:classappend="${a.progress == 'pending'} ? ' btn-pending' :
                                               (${a.progress == 'handling'} ? ' btn-handling' :
                                               (${a.progress == 'interviewing'} ? ' btn-interviewing' : ' btn-done'))"
@@ -255,112 +255,29 @@
             </div>
         </div>
     </form>
-    <!-- modal xem cv-->
-    <form th:action="@{/admin/application/candidate/mark-handling}" method="post">
-        <input type="hidden" id="appId" name="id" />
 
-        <div class="modal fade" id="cvModal" tabindex="-1" aria-labelledby="cvModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable modal-xl">
-                <div class="modal-content">
-
-                    <!-- Modal Header -->
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold" id="cvModalLabel">CV Candidate</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"  aria-label="Close"></button>
-                    </div>
-
-                    <!-- Modal Body -->
-                    <div class="modal-body">
-                        <div class="text-center mb-3">
-                            <h4 class="fw-bold">Your Name Here</h4>
-                            <p class="mb-0">
-                                123.555.6789 | <a href="mailto:yourname5@ncsu.edu">yourname5@ncsu.edu</a> |
-                                <a href="#">linkedin.com/in/yourname</a> |
-                                <a href="#">myportfolio.wordpress.ncsu.edu</a>
-                            </p>
-                        </div>
-
-                        <h6 class="fw-bold">Summary</h6>
-                        <p>
-                            Collaborative, ambitious problem-solver with inclusive leadership qualities, seeking internship position in
-                            Communication, Marketing, or Media. Prioritizes attention to detail, thoroughness, and aesthetic appeal.
-                            Energized by forming connections, learning from others, and embracing creativity.
-                        </p>
-
-                        <h6 class="fw-bold">Education</h6>
-                        <p class="mb-1"><strong>North Carolina State University, Raleigh, NC</strong> | Anticipated May 20XX</p>
-                        <p>Bachelor of Arts in Communication, Media Concentration | GPA 3.528 | Dean’s List 20XX</p>
-
-                        <h6 class="fw-bold">Skills and Coursework</h6>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <ul>
-                                    <li>Communication Theory</li>
-                                    <li>Newsletter Writing and Production</li>
-                                    <li>Academic Writing and Research</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-4">
-                                <ul>
-                                    <li>Creative Thinking</li>
-                                    <li>Relationship Building</li>
-                                    <li>Psychology</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-4">
-                                <ul>
-                                    <li>Canva</li>
-                                    <li>Adobe Illustrator</li>
-                                    <li>iMovie</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <h6 class="fw-bold">Experience</h6>
-                        <p><strong>Social Media Chair, Delta Zeta Sorority</strong> | Raleigh, NC | December 20XX–Present</p>
-                        <ul>
-                            <li>Managed social media accounts (Instagram, TikTok, Facebook)...</li>
-                            <li>Edited and uploaded photos and videos...</li>
-                            <li>Designed and distributed engaging infographics...</li>
-                            <li>Promoted fundraising events that benefited...</li>
-                            <li>Collaborated extensively with the Vice Presidents...</li>
-                        </ul>
-
-                        <p><strong>Standards Delegate, Delta Zeta Sorority</strong> | Raleigh, NC | December 20XX–Present</p>
-                        <ul>
-                            <li>Applied communication tactics to facilitate productive discussions...</li>
-                            <li>Collaborated with the Vice President of Risk...</li>
-                        </ul>
-
-                        <p><strong>Fitness Assistant, NC State Wellness and Recreation Center</strong> | Raleigh, NC | April 20XX–January 20XX</p>
-                        <ul>
-                            <li>Enthusiastically greeted patrons...</li>
-                            <li>Ensured safety of fitness space users...</li>
-                        </ul>
-
-                        <p><strong>Lifeguard, JCC Bridgewater</strong> | NJ | June 20XX–Present</p>
-                        <ul>
-                            <li>Demonstrated attention to detail in performing pool maintenance...</li>
-                            <li>Practiced active surveillance to prevent and identify emergencies...</li>
-                        </ul>
-
-                        <h6 class="fw-bold">Extracurricular and Service</h6>
-                        <ul>
-                            <li>Public Relations Society of America</li>
-                            <li>Feed the Pack Food Pantry Volunteer</li>
-                        </ul>
-                    </div>
-
-                    <!-- Modal Footer -->
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Xác nhận</button>
-                    </div>
-
+    <!-- Modal CV -->
+    <div class="modal fade" id="cvModal" tabindex="-1" aria-labelledby="cvModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cvModalLabel">CV Candidate</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
+                <!-- CV Content -->
+                <div class="modal-body" id="cvContent">
+                    <p class="text-center text-muted">Đang tải CV...</p>
+                </div>
+
+<!--                <div class="modal-footer">-->
+<!--                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>-->
+<!--                </div>-->
             </div>
         </div>
-    </form>
+    </div>
+
+
     <!-- Interview Modal -->
     <form th:action="@{/admin/application/schedule-interview}" method="post">
         <input type="hidden" name="applicationId" id="applicationId" />

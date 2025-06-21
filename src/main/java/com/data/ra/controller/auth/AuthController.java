@@ -139,11 +139,11 @@ public class AuthController {
 
         // Tạo token reset
         String token = UUID.randomUUID().toString();
-        authService.saveResetToken(user.getEmail(), token); // ⚠️ bạn cần cài thêm method này
+        authService.saveResetToken(user.getEmail(), token);
 
         // Gửi email
         String resetLink = "http://localhost:8080/auth/reset-password?token=" + token;
-        authService.sendResetPasswordEmail(user.getEmail(), resetLink); // ⚠️ dùng EmailService bên trong AuthService
+        authService.sendResetPasswordEmail(user.getEmail(), resetLink);
 
         redirectAttributes.addFlashAttribute("message", "Vui lòng kiểm tra email để đặt lại mật khẩu.");
         return "redirect:/auth/login";

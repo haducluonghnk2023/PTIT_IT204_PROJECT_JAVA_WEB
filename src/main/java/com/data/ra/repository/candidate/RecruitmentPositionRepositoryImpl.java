@@ -192,5 +192,20 @@ public class RecruitmentPositionRepositoryImpl implements  RecruitmentPositionRe
         }
     }
 
+    @Override
+    public RecruitmentPosition findByName(String name) {
+    Session session = sessionFactory.openSession();
+        try {
+            return session.createQuery(
+                            "FROM RecruitmentPosition r WHERE LOWER(r.name) = LOWER(:name) AND r.name NOT LIKE :deletedPattern",
+                            RecruitmentPosition.class)
+                    .setParameter("name", name)
+                    .setParameter("deletedPattern", "%_deleted")
+                    .uniqueResult();
+        } finally {
+            session.close();
+        }
+    }
+
 
 }

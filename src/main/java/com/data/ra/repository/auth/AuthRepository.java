@@ -5,6 +5,7 @@ import com.data.ra.entity.auth.User;
 
 public interface AuthRepository {
     User findByEmail(String email);
+    User findById(Integer id);
     User login(String email, String password);
     User findByRememberToken(String token);
     void updateRememberToken(Integer userId, String token);

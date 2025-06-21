@@ -1,5 +1,7 @@
 package com.data.ra.controller.candidate;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.data.ra.entity.admin.RecruitmentPosition;
 import com.data.ra.entity.auth.User;
 import com.data.ra.entity.candidate.Candidate;
@@ -13,12 +15,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -26,6 +30,9 @@ import java.util.stream.Collectors;
 public class ListRecruitmentController {
     @Autowired
     private RecruitmentPositionService recruitmentPositionService;
+
+    @Autowired
+    private Cloudinary cloudinary;
 
     @Autowired
     private ApplicationService applicationService;
@@ -72,39 +79,61 @@ public class ListRecruitmentController {
 
     @PostMapping("/apply")
     public String applyRecruitment(@RequestParam("recruitmentId") Long recruitmentId,
-                                   @RequestParam("cvUrl") String cvUrl,
+                                   @RequestParam("cvFile") MultipartFile file,
                                    HttpSession session,
                                    RedirectAttributes redirectAttributes) {
+
+        // ✅ Kiểm tra đăng nhập
         User user = (User) session.getAttribute("currentCandidate");
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("error", "Bạn cần đăng nhập trước khi ứng tuyển.");
+            return "redirect:/auth/login";
+        }
+
+        // ✅ Lấy thông tin ứng viên
         Candidate candidate = candidateService.findByUserId(user.getId());
-
-        // ✅ Kiểm tra URL hợp lệ
-        if (!isValidUrl(cvUrl)) {
-            redirectAttributes.addFlashAttribute("error", "Đường dẫn CV không hợp lệ!");
+        if (candidate == null) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy thông tin ứng viên.");
             return "redirect:/candidate/my-application";
         }
 
-        // ✅ Kiểm tra đã ứng tuyển chưa
-        boolean alreadyApplied = applicationService.existsByCandidateIdAndRecruitmentId(candidate.getId(), recruitmentId);
-        if (alreadyApplied) {
-            redirectAttributes.addFlashAttribute("warning", "Bạn đã ứng tuyển vị trí này rồi!");
+        // ✅ Kiểm tra file hợp lệ
+        if (file == null || file.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng chọn file CV để tải lên.");
             return "redirect:/candidate/my-application";
         }
 
-        // ✅ Lưu ứng tuyển
-        applicationService.save(candidate.getId(), recruitmentId, cvUrl);
-        redirectAttributes.addFlashAttribute("success", "Ứng tuyển thành công!");
+        try {
+            // ✅ Upload lên Cloudinary (file CV dạng PDF/DOCX/TXT -> raw)
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap("resource_type", "raw")
+            );
+
+            // ✅ Lấy URL CV từ kết quả
+            String cvUrl = (String) uploadResult.get("secure_url");
+            if (cvUrl == null || cvUrl.isEmpty()) {
+                throw new RuntimeException("Cloudinary không trả về URL CV.");
+            }
+
+            // ✅ Kiểm tra đã ứng tuyển chưa
+            boolean alreadyApplied = applicationService.existsByCandidateIdAndRecruitmentId(candidate.getId(), recruitmentId);
+            if (alreadyApplied) {
+                redirectAttributes.addFlashAttribute("warning", "Bạn đã ứng tuyển vị trí này rồi!");
+                return "redirect:/candidate/my-application";
+            }
+
+            // ✅ Lưu ứng tuyển
+            applicationService.saveApp(candidate.getId(), recruitmentId, cvUrl);
+            redirectAttributes.addFlashAttribute("success", "Ứng tuyển thành công!");
+
+        } catch (Exception e) {
+            e.printStackTrace(); // log lỗi
+            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi khi tải lên CV.");
+        }
+
         return "redirect:/candidate/my-application";
     }
 
-
-    private boolean isValidUrl(String url) {
-        try {
-            new java.net.URL(url).toURI(); // kiểm tra chuẩn URL và URI
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
 }

@@ -16,6 +16,8 @@ public interface CandidateRepository {
 
     Optional<Candidate> findById(Long id);
 
+    Candidate findByPhone(String phone);
+
     int countFilteredCandidates(String name, Integer experience, int minAge, int maxAge,
                                 String gender, String technology);
     Candidate findByUserId(Integer userId);

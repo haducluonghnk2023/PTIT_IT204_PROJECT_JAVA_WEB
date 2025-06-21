@@ -40,8 +40,13 @@ public class ApplicationServiceImpl implements  ApplicationService {
     }
 
     @Override
-    public void save(Integer candidateId, Long recruitmentId, String cvUrl) {
-        applicationRepository.save(candidateId, recruitmentId, cvUrl);
+    public void save(Application application) {
+        applicationRepository.save(application);
+    }
+
+    @Override
+    public void saveApp(Integer candidateId, Long recruitmentId, String cvUrl) {
+        applicationRepository.saveApp(candidateId, recruitmentId, cvUrl);
     }
 
     @Override

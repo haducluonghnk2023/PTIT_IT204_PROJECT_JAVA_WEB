@@ -25,6 +25,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public User findById(Integer id) {
+        return authRepository.findById(id);
+    }
+
+    @Override
     public User login(String email, String password) {
         return authRepository.login(email, password);
     }

@@ -61,5 +61,10 @@ public class RecruitmentPositionServiceImpl implements  RecruitmentPositionServi
         return recruitmentPositionRepository.countSearchByName(keyword);
     }
 
+    @Override
+    public RecruitmentPosition findByName(String name) {
+        return recruitmentPositionRepository.findByName(name);
+    }
+
 
 }

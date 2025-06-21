@@ -50,4 +50,9 @@ public class CandidateServiceImpl implements  CandidateService {
     public void save(Candidate candidate) {
         candidateRepository.save(candidate);
     }
+
+    @Override
+    public Candidate findByPhone(String phone) {
+        return candidateRepository.findByPhone(phone);
+    }
 }

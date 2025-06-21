@@ -65,9 +65,18 @@ public class RecruitmentPositionController {
             @ModelAttribute RecruitmentPositionDTO dto,
             RedirectAttributes redirectAttributes) {
 
-        RecruitmentPosition position = new RecruitmentPosition();
+        boolean isUpdate = dto.getId() != null;
+        RecruitmentPosition existingPosition = recruitmentPositionService.findByName(dto.getName());
 
-        if (dto.getId() != null) {
+        // Nếu đang tạo mới hoặc tên đã bị đổi và trùng với tên khác
+        if (existingPosition != null &&
+                (!isUpdate || (isUpdate && !existingPosition.getId().equals(dto.getId())))) {
+            redirectAttributes.addFlashAttribute("error", "Tên vị trí tuyển dụng đã tồn tại.");
+            return "redirect:/admin/recruitment-position";
+        }
+
+        RecruitmentPosition position = new RecruitmentPosition();
+        if (isUpdate) {
             position.setId(dto.getId());
         }
 
@@ -83,20 +92,22 @@ public class RecruitmentPositionController {
         position.setLocation(dto.getLocation());
         position.setType(dto.getType());
 
-
-        // Lấy danh sách Technology từ danh sách ID
+        // Gán công nghệ
         List<Technology> technologies = technologyService.findByIds(dto.getTechnologyIds());
         position.setTechnologies(new HashSet<>(technologies));
 
         try {
             recruitmentPositionService.save(position);
-            redirectAttributes.addFlashAttribute("success", "Lưu vị trí tuyển dụng thành công!");
+            redirectAttributes.addFlashAttribute("success", isUpdate ?
+                    "Cập nhật vị trí tuyển dụng thành công!" :
+                    "Thêm vị trí tuyển dụng thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi khi lưu vị trí tuyển dụng.");
         }
 
         return "redirect:/admin/recruitment-position";
     }
+
 
     @GetMapping("/delete/{id}")
     public String deleteRecruitmentPosition(@PathVariable("id") Long id,

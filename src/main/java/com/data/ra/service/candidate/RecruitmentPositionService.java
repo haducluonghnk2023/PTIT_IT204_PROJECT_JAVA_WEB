@@ -15,4 +15,5 @@ public interface RecruitmentPositionService {
     void deleteById(Long id);
     List<RecruitmentPosition> searchByName(String keyword, int page, int size);
     long countSearchByName(String keyword);
+    RecruitmentPosition findByName(String name);
 }

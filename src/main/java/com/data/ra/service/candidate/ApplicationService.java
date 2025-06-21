@@ -14,7 +14,8 @@ public interface ApplicationService {
     // Trả về tổng số lượng ứng tuyển
     int countAllByUser(Integer candidateId);
     int countApplications();
-    void save(Integer candidateId, Long recruitmentId, String cvUrl);
+    void save(Application application);
+    void saveApp(Integer candidateId, Long recruitmentId, String cvUrl);
     boolean existsByCandidateIdAndRecruitmentId(Integer candidateId, Long recruitmentId);
     void markHandling(Integer id);
     void scheduleInterview(Integer id, Date interviewDate, String interviewLink) throws IllegalStateException;
