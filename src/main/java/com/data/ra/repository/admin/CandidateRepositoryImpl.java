@@ -190,6 +190,15 @@ public class CandidateRepositoryImpl implements CandidateRepository {
         }
     }
 
+    @Override
+    public Long countAll() {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "SELECT COUNT(c) FROM Candidate c";
+            Query<Long> query = session.createQuery(hql, Long.class);
+            return query.uniqueResult();
+        }
+    }
+
     private String generateRandomPassword() {
         int length = 10;
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

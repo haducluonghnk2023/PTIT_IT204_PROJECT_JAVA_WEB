@@ -1,6 +1,8 @@
 package com.data.ra.service.candidate;
 
+import com.data.ra.dto.admin.ApplicationDTO;
 import com.data.ra.entity.admin.Application;
+import com.data.ra.entity.admin.Page;
 
 import java.util.Date;
 import java.util.List;
@@ -23,4 +25,6 @@ public interface ApplicationService {
     void saveInterviewResult(Integer id, String result, String resultNote);
     void destroyInterview(Integer id,String reason);
     Application findById(Integer id);
+    Page<ApplicationDTO> findAllWithPaging(int page, int size, String keyword, String progress);
+    Long countAll();
 }

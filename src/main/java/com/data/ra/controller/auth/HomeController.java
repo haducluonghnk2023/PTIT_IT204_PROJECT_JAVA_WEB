@@ -29,7 +29,10 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model) {
         List<RecruitmentPosition> allPositions = recruitmentPositionService.findAll();
+
+        // Sắp xếp theo ngày tạo mới nhất
         List<RecruitmentPositionDTO> top9 = allPositions.stream()
+                .sorted(Comparator.comparing(RecruitmentPosition::getCreatedDate).reversed())
                 .limit(9)
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -37,6 +40,7 @@ public class HomeController {
         model.addAttribute("recruitmentPosition", top9);
         return "candidate/home";
     }
+
 
     @GetMapping("/recruitment/search")
     public String search(@RequestParam(value = "keyword", required = false) String keyword,

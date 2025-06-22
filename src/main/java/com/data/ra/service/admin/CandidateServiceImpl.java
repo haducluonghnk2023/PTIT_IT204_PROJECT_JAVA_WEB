@@ -55,4 +55,9 @@ public class CandidateServiceImpl implements  CandidateService {
     public Candidate findByPhone(String phone) {
         return candidateRepository.findByPhone(phone);
     }
+
+    @Override
+    public Long countAll() {
+        return candidateRepository.countAll();
+    }
 }

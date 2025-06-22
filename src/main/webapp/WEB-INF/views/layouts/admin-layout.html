@@ -12,6 +12,7 @@
     <script th:src="@{/js/bootstrap.min.js}"></script>
     <link rel="stylesheet" th:href="@{/css/style.css}" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         html, body {
@@ -287,8 +288,8 @@
 
     function openInterview(el) {
         const appId = el.getAttribute("data-app-id");
-        const interviewLink = el.getAttribute("data-interview-link") || 'Chua co';
-        const interviewTime = el.getAttribute("data-interview-time") || 'Chua co';
+        const interviewLink = el.getAttribute("data-interview-link") || 'Chưa Có';
+        const interviewTime = el.getAttribute("data-interview-time");
 
         // Gán ID vào input hidden
         const input = document.getElementById("applicationId");
@@ -300,13 +301,28 @@
 
         // Gán thời gian
         const timeInput = document.getElementById("interviewTime");
-        if (timeInput) timeInput.value = interviewTime;
+        if (timeInput) {
+            if (interviewTime && interviewTime !== 'null') {
+                // Format từ "dd/MM/yyyy HH:mm:ss" sang "yyyy-MM-ddTHH:mm"
+                const parts = interviewTime.split(/[/ :]/); // tách thành mảng [dd, MM, yyyy, HH, mm, ss]
+                if (parts.length >= 5) {
+                    const formatted = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}T${parts[3].padStart(2, '0')}:${parts[4].padStart(2, '0')}`;
+                    timeInput.value = formatted;
+                } else {
+                    timeInput.value = '';
+                }
+            } else {
+                timeInput.value = '';
+            }
+        }
 
         // Hiện modal
         const modalElement = document.getElementById('interviewModal');
         const bsModal = new bootstrap.Modal(modalElement);
         bsModal.show();
     }
+
+
 
 
     function openInterviewResult(el) {
@@ -331,7 +347,26 @@
         const bsModal = new bootstrap.Modal(modalElement);
         bsModal.show();
     }
-
+    window.onload = function () {
+        const ctx = document.getElementById('lineChart');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
+                datasets: [{
+                    label: 'Requirement',
+                    data: [32000, 34000, 36000, 42000, 45591, 44000, 46000, 47000, 50000, 52000, 54000, 58000],
+                    borderColor: '#6366f1',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: false } }
+            }
+        });
+    };
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

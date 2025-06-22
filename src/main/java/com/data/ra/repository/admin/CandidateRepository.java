@@ -22,4 +22,5 @@ public interface CandidateRepository {
                                 String gender, String technology);
     Candidate findByUserId(Integer userId);
     void save(Candidate candidate);
+    Long countAll();
 }

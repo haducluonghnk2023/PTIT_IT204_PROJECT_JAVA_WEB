@@ -38,6 +38,10 @@ public class CandidateController {
             HttpSession session,
             Model model
     ) {
+        Object user = session.getAttribute("currentAdmin");
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
         // 👉 Lưu và lấy lại pageSize từ session
         if (size != null) {
             session.setAttribute("candidatePageSize", size);

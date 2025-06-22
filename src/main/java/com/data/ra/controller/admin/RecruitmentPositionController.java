@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpSession;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,8 +30,13 @@ public class RecruitmentPositionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(value = "search", required = false) String search,
-            Model model) {
+            Model model,
+            HttpSession session) {
 
+        Object user = session.getAttribute("currentAdmin");
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
         if (page < 0) page = 0;
 
         List<RecruitmentPosition> recruitmentPositions;

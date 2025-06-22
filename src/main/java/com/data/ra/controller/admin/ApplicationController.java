@@ -2,6 +2,7 @@ package com.data.ra.controller.admin;
 
 import com.data.ra.dto.admin.ApplicationDTO;
 import com.data.ra.entity.admin.Application;
+import com.data.ra.entity.admin.Page;
 import com.data.ra.entity.admin.Progress;
 import com.data.ra.service.candidate.ApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,13 +12,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpSession;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Controller
@@ -25,42 +26,33 @@ import java.util.stream.Collectors;
 public class ApplicationController {
     @Autowired
     private ApplicationService applicationService;
-
     @GetMapping
     public String showApplication(Model model,
                                   @RequestParam(value = "keyword", required = false) String keyword,
                                   @RequestParam(value = "process", required = false) String progress,
                                   @RequestParam(value = "page", defaultValue = "1") int page,
-                                  @RequestParam(value = "size", defaultValue = "10") int size) {
+                                  @RequestParam(value = "size", defaultValue = "5") int size,
+                                  HttpSession session) {
 
-        List<ApplicationDTO> dtos = applicationService.findAll().stream()
-                .filter(app -> {
-                    boolean matchesKeyword = (keyword == null || keyword.isEmpty()) ||
-                            app.getRecruitmentPosition().getName().toLowerCase().contains(keyword.toLowerCase());
+        // ✅ Kiểm tra đăng nhập
+        Object user = session.getAttribute("currentAdmin");
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
 
-                    boolean matchesProcess = (progress == null || progress.isEmpty()) ||
-                            (app.getProgress() != null && app.getProgress().name().equalsIgnoreCase(progress));
+        // ✅ Gọi service lấy dữ liệu đã lọc + phân trang
+        Page<ApplicationDTO> applicationPage = applicationService.findAllWithPaging(page - 1, size, keyword, progress);
+        // (page - 1) vì Hibernate offset từ 0, còn frontend từ 1
 
-                    return matchesKeyword && matchesProcess;
-                })
-                .map(ApplicationDTO::new)
-                .collect(Collectors.toList());
-
-        int totalItems = dtos.size();
-        int totalPages = (int) Math.ceil((double) totalItems / size);
-
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, totalItems);
-        List<ApplicationDTO> paginated = dtos.subList(fromIndex, toIndex);
-
-        model.addAttribute("applications", paginated);
+        model.addAttribute("applications", applicationPage.getContent());
         model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalPages", applicationPage.getTotalPages());
         model.addAttribute("keyword", keyword);
         model.addAttribute("progress", progress);
 
         return "admin/application";
     }
+
 
     @GetMapping("/candidate/view-cv/{id}")
     public String viewCVModalContent(@PathVariable("id") Integer appId, Model model) {

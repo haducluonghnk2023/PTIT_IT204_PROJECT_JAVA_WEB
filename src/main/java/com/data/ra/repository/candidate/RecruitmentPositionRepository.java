@@ -16,4 +16,5 @@ public interface RecruitmentPositionRepository {
     List<RecruitmentPosition> searchByName(String keyword, int page, int size);
     long countSearchByName(String keyword);
     RecruitmentPosition findByName(String name);
+
 }

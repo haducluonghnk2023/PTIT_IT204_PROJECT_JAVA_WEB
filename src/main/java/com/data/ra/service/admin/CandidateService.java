@@ -24,4 +24,6 @@ public interface CandidateService {
     void save(Candidate candidate);
 
     Candidate findByPhone(String phone);
+
+    Long countAll();
 }

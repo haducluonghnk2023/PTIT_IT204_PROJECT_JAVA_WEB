@@ -50,4 +50,9 @@ public class TechnologyServiceImpl implements TechnologyService {
     public List<Technology> findByIds(List<Long> ids) {
         return technologyRepository.findByIds(ids);
     }
+
+    @Override
+    public Long countAll() {
+        return technologyRepository.countAll();
+    }
 }

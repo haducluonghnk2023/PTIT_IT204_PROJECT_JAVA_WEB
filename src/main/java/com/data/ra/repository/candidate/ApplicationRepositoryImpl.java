@@ -1,11 +1,14 @@
 package com.data.ra.repository.candidate;
 
+import com.data.ra.dto.admin.ApplicationDTO;
 import com.data.ra.entity.admin.Application;
+import com.data.ra.entity.admin.Page;
 import com.data.ra.entity.admin.Progress;
 import com.data.ra.entity.admin.RecruitmentPosition;
 import com.data.ra.entity.candidate.Candidate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -315,6 +318,69 @@ public class ApplicationRepositoryImpl implements  ApplicationRepository {
         Session session = sessionFactory.openSession();
         try {
             return session.get(Application.class, id);
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public Page<ApplicationDTO> findAllWithPaging(int page, int size, String keyword, String progress) {
+        Session session = sessionFactory.openSession();
+        try {
+            // === Truy vấn lấy dữ liệu ===
+            StringBuilder hql = new StringBuilder("SELECT new com.data.ra.dto.admin.ApplicationDTO(a) FROM Application a WHERE a.progress <> 'rejected' ");
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                hql.append("AND (a.candidate.name LIKE :keyword OR a.recruitmentPosition.name LIKE :keyword) ");
+            }
+            if (progress != null && !progress.trim().isEmpty()) {
+                hql.append("AND a.progress = :progress ");
+            }
+            hql.append("ORDER BY a.createAt DESC");
+
+            Query<ApplicationDTO> query = session.createQuery(hql.toString(), ApplicationDTO.class);
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                query.setParameter("keyword", "%" + keyword.trim() + "%");
+            }
+            if (progress != null && !progress.trim().isEmpty()) {
+                query.setParameter("progress", Progress.valueOf(progress));
+            }
+
+            query.setFirstResult(page * size);
+            query.setMaxResults(size);
+            List<ApplicationDTO> results = query.list();
+
+            // === Truy vấn đếm số lượng ===
+            StringBuilder countHql = new StringBuilder("SELECT COUNT(a.id) FROM Application a WHERE a.progress <> 'rejected' ");
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                countHql.append("AND (a.candidate.name LIKE :keyword OR a.recruitmentPosition.name LIKE :keyword) ");
+            }
+            if (progress != null && !progress.trim().isEmpty()) {
+                countHql.append("AND a.progress = :progress ");
+            }
+
+            Query<Long> countQuery = session.createQuery(countHql.toString(), Long.class);
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                countQuery.setParameter("keyword", "%" + keyword.trim() + "%");
+            }
+            if (progress != null && !progress.trim().isEmpty()) {
+                countQuery.setParameter("progress", Progress.valueOf(progress));
+            }
+
+            long totalCount = countQuery.uniqueResult();
+
+            return new Page<>(results, totalCount, page, size);
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public Long countAll() {
+        Session session = sessionFactory.openSession();
+        try {
+            return session.createQuery("SELECT COUNT(a) FROM Application a WHERE a.progress != :rejected", Long.class)
+                    .setParameter("rejected", Progress.rejected)
+                    .uniqueResult();
         } finally {
             session.close();
         }

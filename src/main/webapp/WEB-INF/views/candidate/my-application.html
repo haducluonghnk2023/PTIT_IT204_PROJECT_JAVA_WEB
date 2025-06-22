@@ -337,7 +337,11 @@
                         </span>
                 </td>
                 <td class="px-4 py-3">
-                    <img th:src="@{/images/deleteicon.svg}" alt="Delete" width="30" height="30" style="cursor: pointer;">
+                    <img th:attr="data-app-id=${app.id}"
+                         onclick="openDestroyModal(this)"
+                         th:src="@{/images/deleteicon.svg}"
+                         alt="Delete" width="30" height="30"
+                         style="cursor: pointer;">
                     <img th:if="${app.progress.name() == 'interviewing'}"
                          th:src="@{/images/views.svg}"
                          alt="View"
@@ -365,7 +369,7 @@
             <!-- Nút Trái -->
             <li class="page-item" th:classappend="${page == 0} ? 'disabled'">
                 <a class="page-link"
-                   th:href="@{/admin/my-application(size=${size}, page=${page - 1})}"
+                   th:href="@{/candidate/my-application(size=${size}, page=${page - 1})}"
                    aria-label="Previous">
                     <i class="bi bi-chevron-left"></i>
                 </a>
@@ -376,14 +380,14 @@
                 th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                 th:classappend="${i == page} ? 'active'">
                 <a class="page-link"
-                   th:href="@{/admin/my-application(size=${size}, page=${i})}"
+                   th:href="@{/candidate/my-application(size=${size}, page=${i})}"
                    th:text="${i + 1}"></a>
             </li>
 
             <!-- Nút Phải -->
             <li class="page-item" th:classappend="${page == totalPages - 1} ? 'disabled'">
                 <a class="page-link"
-                   th:href="@{/admin/my-application(size=${size}, page=${page + 1})}"
+                   th:href="@{/candidate/my-application(size=${size}, page=${page + 1})}"
                    aria-label="Next">
                     <i class="bi bi-chevron-right"></i>
                 </a>
@@ -476,6 +480,40 @@
         </div>
     </div>
 </footer>
+<!-- Destroy Interview Modal -->
+<form id="destroyInterviewForm" th:action="@{/candidate/my-application/destroy-interview}" method="post">
+    <!-- Modal -->
+    <div class="modal fade" id="destroyInterviewModal" tabindex="-1" aria-labelledby="destroyInterviewLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="destroyInterviewLabel">Destroy Interview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <!-- Hidden ID để biết đơn nào cần huỷ -->
+                    <input type="hidden" name="applicationId" id="destroyApplicationId" />
+
+                    <div class="mb-3">
+                        <label for="destroyReason" class="form-label fw-semibold">Destroy Reason <span class="text-danger">*</span></label>
+                        <textarea id="destroyReason" name="reason" class="form-control" rows="4" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Save</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</form>
 <script>
     window.addEventListener("DOMContentLoaded", () => {
         const alerts = document.querySelectorAll(".alert");
@@ -525,7 +563,17 @@
             bsModal.show();
         }
     }
+    function openDestroyModal(el) {
+        const appId = el.getAttribute("data-app-id");
+        const input = document.getElementById("destroyApplicationId");
 
+        if (input) {
+            input.value = appId;
+        }
+        const modalElement = document.getElementById('destroyInterviewModal');
+        const bsModal = new bootstrap.Modal(modalElement);
+        bsModal.show();
+    }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

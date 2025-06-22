@@ -19,7 +19,14 @@ public class RecruitmentPositionRepositoryImpl implements  RecruitmentPositionRe
         Session session = sessionFactory.openSession();
         try {
             return session.createQuery(
-                            "FROM RecruitmentPosition r WHERE r.name NOT LIKE :deletedPattern",
+                            "SELECT DISTINCT rp FROM RecruitmentPosition rp " +
+                                    "JOIN rp.technologies t " +
+                                    "WHERE t.name NOT LIKE :deletedPattern " +
+                                    "AND NOT EXISTS (" +
+                                    "    SELECT 1 FROM RecruitmentPosition rp2 " +
+                                    "    JOIN rp2.technologies t2 " +
+                                    "    WHERE rp2.id = rp.id AND t2.name LIKE :deletedPattern" +
+                                    ")",
                             RecruitmentPosition.class)
                     .setParameter("deletedPattern", "%_deleted")
                     .setFirstResult(page * size)
@@ -29,6 +36,7 @@ public class RecruitmentPositionRepositoryImpl implements  RecruitmentPositionRe
             session.close();
         }
     }
+
 
     @Override
     public long countAll() {
@@ -44,7 +52,16 @@ public class RecruitmentPositionRepositoryImpl implements  RecruitmentPositionRe
     public List<RecruitmentPosition> findAll() {
         Session session = sessionFactory.openSession();
         try {
-            return session.createQuery("FROM RecruitmentPosition WHERE name NOT LIKE :deletedPattern", RecruitmentPosition.class)
+            return session.createQuery(
+                            "SELECT DISTINCT rp FROM RecruitmentPosition rp " +
+                                    "JOIN rp.technologies t " +
+                                    "WHERE rp.name NOT LIKE :deletedPattern " +
+                                    "AND NOT EXISTS (" +
+                                    "    SELECT 1 FROM RecruitmentPosition rp2 " +
+                                    "    JOIN rp2.technologies t2 " +
+                                    "    WHERE rp2.id = rp.id AND t2.name LIKE :deletedPattern" +
+                                    ")",
+                            RecruitmentPosition.class)
                     .setParameter("deletedPattern", "%_deleted")
                     .list();
         } finally {

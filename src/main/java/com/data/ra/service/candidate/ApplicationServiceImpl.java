@@ -1,6 +1,8 @@
 package com.data.ra.service.candidate;
 
+import com.data.ra.dto.admin.ApplicationDTO;
 import com.data.ra.entity.admin.Application;
+import com.data.ra.entity.admin.Page;
 import com.data.ra.repository.candidate.ApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -82,5 +84,15 @@ public class ApplicationServiceImpl implements  ApplicationService {
     @Override
     public Application findById(Integer id) {
         return applicationRepository.findById(id);
+    }
+
+    @Override
+    public Page<ApplicationDTO> findAllWithPaging(int page, int size, String keyword, String progress) {
+        return applicationRepository.findAllWithPaging(page, size, keyword, progress);
+    }
+
+    @Override
+    public Long countAll() {
+        return applicationRepository.countAll();
     }
 }

@@ -13,4 +13,5 @@ public interface TechnologyRepository {
     long count(String search);
     Technology findByName(String name);
     List<Technology> findByIds(List<Long> ids);
+    Long countAll();
 }

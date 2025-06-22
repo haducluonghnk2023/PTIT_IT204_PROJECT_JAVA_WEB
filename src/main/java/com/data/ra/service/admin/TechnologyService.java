@@ -13,4 +13,5 @@ public interface TechnologyService {
     long count(String search);
     boolean isNameDuplicate(String name, Long currentId);
     List<Technology> findByIds(List<Long> ids);
+    Long countAll();
 }

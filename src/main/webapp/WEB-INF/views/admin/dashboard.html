@@ -4,16 +4,139 @@
       layout:decorate="~{layouts/admin-layout}">
 <head>
     <meta charset="UTF-8">
-  <title>Dashboard</title>
-
+    <title>Dashboard</title>
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold">Dash Board</h4>
-    </div>
+    <div class="container mt-4">
+        <h4 class="fw-bold mb-3">Dashboard</h4>
+        <p>Chào mừng bạn đến trang thống kê!</p>
 
-    <p>Chào mừng bạn đến trang thống kê!</p>
+        <!-- Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card shadow-sm p-3">
+                    <p class="mb-1 text-muted">Total Requirement</p>
+                    <h4 class="mb-0" th:text="${totalRequirement} + ' '">0</h4>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm p-3">
+                    <p class="mb-1 text-muted">Total Technology</p>
+                    <h4 class="mb-0" th:text="${totalTechnology} + ' '">0</h4>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm p-3">
+                    <p class="mb-1 text-muted">Total Candidate</p>
+                    <h4 class="mb-0" th:text="${totalCandidate} + ' '">0</h4>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm p-3">
+                    <p class="mb-1 text-muted">Total Application</p>
+                    <h4 class="mb-0" th:text="${totalApplication} + ' '">0</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart + Traffic Sources + Recent Customers -->
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="card shadow-sm p-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h6 class="fw-bold">Requirement</h6>
+                        <button class="btn btn-outline-secondary btn-sm">Export PDF</button>
+                    </div>
+                    <canvas id="lineChart" height="100"></canvas>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm p-3 mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h6 class="fw-bold">Traffic Sources</h6>
+                        <span class="text-muted small">Last 7 days</span>
+                    </div>
+                    <div>
+                        <p class="mb-1">Direct <span class="float-end">1,43,382</span></p>
+                        <div class="progress mb-2"><div class="progress-bar" style="width: 90%"></div></div>
+
+                        <p class="mb-1">Referral <span class="float-end">87,974</span></p>
+                        <div class="progress mb-2"><div class="progress-bar bg-info" style="width: 60%"></div></div>
+
+                        <p class="mb-1">Social Media <span class="float-end">45,211</span></p>
+                        <div class="progress mb-2"><div class="progress-bar bg-warning" style="width: 40%"></div></div>
+
+                        <p class="mb-1">Twitter <span class="float-end">21,893</span></p>
+                        <div class="progress mb-2"><div class="progress-bar bg-secondary" style="width: 20%"></div></div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm p-3">
+                    <h6 class="fw-bold">Recent Customers</h6>
+                    <p class="text-muted small">Lorem ipsum dolor sit ametis.</p>
+                    <ul class="list-unstyled">
+                        <li class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>Jenny Wilson</strong><br>
+                                <small class="text-muted">w.lawson@example.com</small>
+                            </div>
+                            <span>$11,234</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>Devon Lane</strong><br>
+                                <small class="text-muted">dat.roberts@example.com</small>
+                            </div>
+                            <span>$11,159</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>Jane Cooper</strong><br>
+                                <small class="text-muted">jgraham@example.com</small>
+                            </div>
+                            <span>$10,483</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Dianne Russell</strong><br>
+                                <small class="text-muted">curtis.d@example.com</small>
+                            </div>
+                            <span>$9,084</span>
+                        </li>
+                    </ul>
+                    <a href="#" class="text-primary small">See all customers</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.onload = function () {
+            const ctx = document.getElementById('lineChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
+                        datasets: [{
+                            label: 'Requirement',
+                            data: [32000, 34000, 36000, 42000, 45591, 44000, 46000, 47000, 50000, 52000, 54000, 58000],
+                            borderColor: '#6366f1',
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: false } }
+                    }
+                });
+            } else {
+                console.error("Không tìm thấy canvas #lineChart trong DOM.");
+            }
+        };
+    </script>
 </div>
 </body>
 </html>

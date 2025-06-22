@@ -11,6 +11,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,8 +58,13 @@ public class TechnologyController {
                                    @RequestParam(defaultValue = "10") int size,
                                    @RequestParam(required = false) String search,
                                    Model model,
-                                   @ModelAttribute("technology") TechnologyDTO dto) {
+                                   @ModelAttribute("technology") TechnologyDTO dto,
+                                   HttpSession session) {
 
+        Object user = session.getAttribute("currentAdmin");
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
         List<TechnologyDTO> technologies = technologyService.findAll(page, size, search)
                 .stream().map(this::toDto).collect(Collectors.toList());
 

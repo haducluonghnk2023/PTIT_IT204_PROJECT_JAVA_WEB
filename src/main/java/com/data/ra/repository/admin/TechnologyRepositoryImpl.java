@@ -91,6 +91,15 @@ public class TechnologyRepositoryImpl implements TechnologyRepository {
     }
 
     @Override
+    public Long countAll() {
+        try (Session session = getSession()) {
+            String hql = "SELECT COUNT(t) FROM Technology t WHERE t.is_deleted = false";
+            Query<Long> query = session.createQuery(hql, Long.class);
+            return query.uniqueResult();
+        }
+    }
+
+    @Override
     public void save(Technology technology) {
         Session session = getSession();
         session.beginTransaction();
